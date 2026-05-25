@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1050" viewBox="0 0 1800 1050">
+  <rect width="1800" height="1050" fill="#ffffff"/>
+  <style>
+    text { font-family: 'Noto Sans CJK KR','Apple SD Gothic Neo','Malgun Gothic','NanumGothic','Arial Unicode MS',sans-serif; fill:#111; }
+    .title { font-size:44px; font-weight:800; }
+    .sub { font-size:24px; fill:#444; }
+    .h { font-size:27px; font-weight:800; }
+    .m { font-size:23px; font-weight:650; }
+    .s { font-size:20px; fill:#333; }
+    .xs { font-size:17px; fill:#444; }
+    .white { fill:#fff; }
+    .mono { font-family:'DejaVu Sans Mono','Consolas',monospace; }
+  </style>
+<text x="80" y="78" class="title" text-anchor="start">Read energy decomposition breakdown</text>
+<text x="82" y="122" class="sub" text-anchor="start">SM 공통 loop 비용을 control로 뺀 뒤, L2 path와 L2 이후 off-chip 증가분을 추정</text>
+<rect x="120" y="260" width="121.12167067035378" height="130" rx="0" fill="#b8b8b8" stroke="#222" stroke-width="2"/>
+<text x="180.56083533517688" y="308" class="m" text-anchor="middle" fill="#111"><tspan x="180.56083533517688" dy="0">기본 loop</tspan><tspan x="180.56083533517688" dy="32">1.101 pJ/bit</tspan></text>
+<rect x="241.12167067035378" y="260" width="280.1162348246146" height="130" rx="0" fill="#2f6fc2" stroke="#222" stroke-width="2"/>
+<text x="381.17978808266105" y="308" class="m" text-anchor="middle" fill="#fff"><tspan x="381.17978808266105" dy="0">L2 read path</tspan><tspan x="381.17978808266105" dy="32">2.546 pJ/bit</tspan></text>
+<rect x="521.2379054949683" y="260" width="878.7620945050317" height="130" rx="0" fill="#f28e2b" stroke="#222" stroke-width="2"/>
+<text x="960.6189527474842" y="308" class="m" text-anchor="middle" fill="#fff"><tspan x="960.6189527474842" dy="0">L2 이후 off-chip</tspan><tspan x="960.6189527474842" dy="32">7.989 pJ/bit</tspan></text>
+<text x="120" y="225" class="h" text-anchor="start">dram_read_total = 11.636 pJ/bit</text>
+<text x="120" y="445" class="h" text-anchor="start">1.101 + 2.546 + 7.989 = 11.636 pJ/bit</text>
+<rect x="120" y="600" width="500" height="180" rx="12" fill="#eaf2ff" stroke="#777" stroke-width="2"/>
+<text x="148" y="648" class="h" text-anchor="start">l2_read_total</text>
+<text x="148" y="692" class="h" text-anchor="start" fill="#222">4.225 pJ/bit</text>
+<text x="148" y="738" class="s" text-anchor="start">L2-resident read 전체 비용</text>
+<rect x="675" y="600" width="500" height="180" rx="12" fill="#fff2f2" stroke="#777" stroke-width="2"/>
+<text x="703" y="648" class="h" text-anchor="start">dram_over_control</text>
+<text x="703" y="692" class="h" text-anchor="start" fill="#222">10.535 pJ/bit</text>
+<text x="703" y="738" class="s" text-anchor="start">control_dram을 뺀 DRAM read 추가 비용</text>
+<rect x="1230" y="600" width="500" height="180" rx="12" fill="#fff5e8" stroke="#777" stroke-width="2"/>
+<text x="1258" y="648" class="h" text-anchor="start">dram_global_over_l2</text>
+<text x="1258" y="692" class="h" text-anchor="start" fill="#222">7.989 pJ/bit</text>
+<text x="1258" y="738" class="s" text-anchor="start">L2 path까지 뺀 off-chip 증가분</text>
+<rect x="120" y="850" width="1560" height="105" rx="12" fill="#f7f7f7" stroke="#888" stroke-width="2"/>
+<text x="150" y="895" class="h" text-anchor="start">핵심 해석</text>
+<text x="150" y="935" class="s" text-anchor="start">DRAM read 전체 비용 중 가장 큰 부분은 L2 이후 memory controller / PHY / HBM 경로로 가는 증가분이다. 단, NVML 기반 board-level 추정이다.</text>
+</svg>

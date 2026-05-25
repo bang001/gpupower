@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1050" viewBox="0 0 1800 1050">
+  <rect width="1800" height="1050" fill="#ffffff"/>
+  <style>
+    text { font-family: 'Noto Sans CJK KR','Apple SD Gothic Neo','Malgun Gothic','NanumGothic','Arial Unicode MS',sans-serif; fill:#111; }
+    .title { font-size:44px; font-weight:800; }
+    .sub { font-size:24px; fill:#444; }
+    .h { font-size:27px; font-weight:800; }
+    .m { font-size:23px; font-weight:650; }
+    .s { font-size:20px; fill:#333; }
+    .xs { font-size:17px; fill:#444; }
+    .white { fill:#fff; }
+    .mono { font-family:'DejaVu Sans Mono','Consolas',monospace; }
+  </style>
+<text x="80" y="78" class="title" text-anchor="start">Read vs Write 비교 상태</text>
+<text x="82" y="122" class="sub" text-anchor="start">현재 reports 기준으로는 read full 결과만 확인됨. write full 결과는 아직 없음.</text>
+<rect x="95" y="190" width="770" height="650" rx="18" fill="#f7faff" stroke="#2f6fc2" stroke-width="4"/>
+<text x="135" y="250" class="h" text-anchor="start" fill="#2f6fc2">READ 결과 있음</text>
+<text x="145" y="315" class="m" text-anchor="start">l2_read_total</text>
+<text x="675" y="315" class="m" text-anchor="end">4.225 pJ/bit</text>
+<text x="145" y="397" class="m" text-anchor="start">dram_read_total</text>
+<text x="675" y="397" class="m" text-anchor="end">11.636 pJ/bit</text>
+<text x="145" y="479" class="m" text-anchor="start">l2_over_control</text>
+<text x="675" y="479" class="m" text-anchor="end">2.546 pJ/bit</text>
+<text x="145" y="561" class="m" text-anchor="start">dram_over_control</text>
+<text x="675" y="561" class="m" text-anchor="end">10.535 pJ/bit</text>
+<text x="145" y="643" class="m" text-anchor="start">dram_global_over_l2</text>
+<text x="675" y="643" class="m" text-anchor="end">7.989 pJ/bit</text>
+<text x="145" y="755" class="s" text-anchor="start" fill="#2f6fc2">quality: all stages complete, R2 good</text>
+<rect x="935" y="190" width="770" height="650" rx="18" fill="#fff5f5" stroke="#d94b45" stroke-width="4"/>
+<text x="975" y="250" class="h" text-anchor="start" fill="#d94b45">WRITE full 결과 없음</text>
+<text x="985" y="320" class="m" text-anchor="start">• reports/**/write_energy_decomp_*_metadata.json 없음</text>
+<text x="985" y="390" class="m" text-anchor="start">• /tmp에는 smoke test 결과만 존재</text>
+<text x="985" y="460" class="m" text-anchor="start">• smoke는 0.2초 phase / 작은 buffer라 비교 금지</text>
+<text x="985" y="530" class="m" text-anchor="start">• write 비교에는 full run 결과가 필요함</text>
+<rect x="95" y="890" width="1610" height="90" rx="14" fill="#fff8ef" stroke="#f28e2b" stroke-width="3"/>
+<text x="130" y="944" class="m" text-anchor="start" fill="#bb5a00">다음 단계: write full run 완료 후 write_decomposition.csv가 생기면 read/write pJ/bit 차이와 off-chip 증가분을 같은 방식으로 비교 가능</text>
+</svg>

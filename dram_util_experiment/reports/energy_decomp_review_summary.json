@@ -1,0 +1,110 @@
+{
+  "read_latest_dir": "/workspace/gpupower/dram_util_experiment/reports/nvidia_h100_80gb_hbm3_202605250804",
+  "read_complete": true,
+  "read_summary_rows": 60,
+  "read_expected_rows": 60,
+  "read_fits": {
+    "control_l2": {
+      "stage": "control_l2",
+      "n_points": "3",
+      "targets": "50,75,100",
+      "slope_w_per_gbs": "0.013425699549377447",
+      "intercept_w": "119.95020241068597",
+      "r2": "0.9999909072429722",
+      "max_abs_residual_w": "0.3582130121835405",
+      "pj_per_nominal_bit": "1.6782124436721808"
+    },
+    "l2": {
+      "stage": "l2",
+      "n_points": "3",
+      "targets": "50,75,100",
+      "slope_w_per_gbs": "0.033797403829307814",
+      "intercept_w": "119.68498956400573",
+      "r2": "0.9999868040211496",
+      "max_abs_residual_w": "0.3945433500406921",
+      "pj_per_nominal_bit": "4.224675478663476"
+    },
+    "control_dram": {
+      "stage": "control_dram",
+      "n_points": "3",
+      "targets": "50,75,100",
+      "slope_w_per_gbs": "0.008808682075612206",
+      "intercept_w": "121.34413984308655",
+      "r2": "0.9999983623928737",
+      "max_abs_residual_w": "0.1193228751138804",
+      "pj_per_nominal_bit": "1.1010852594515257"
+    },
+    "dram": {
+      "stage": "dram",
+      "n_points": "3",
+      "targets": "50,75,100",
+      "slope_w_per_gbs": "0.09308914741995351",
+      "intercept_w": "121.48816818936925",
+      "r2": "0.9998768574780376",
+      "max_abs_residual_w": "0.9104785715329626",
+      "pj_per_nominal_bit": "11.63614342749419"
+    }
+  },
+  "read_decomposition": {
+    "control_l2_loop": {
+      "component": "control_l2_loop",
+      "pj_per_bit": "1.6782124436721808",
+      "note": "Matched index/loop/accumulator cost per L2-buffer nominal bit; not a physical memory path."
+    },
+    "l2_read_total": {
+      "component": "l2_read_total",
+      "pj_per_bit": "4.224675478663476",
+      "note": "Board-level slope for L2-resident ld.global.cg loads, including SM/RF/LSU/L2 and active clocks."
+    },
+    "control_dram_loop": {
+      "component": "control_dram_loop",
+      "pj_per_bit": "1.1010852594515257",
+      "note": "Matched index/loop/accumulator cost per DRAM-buffer nominal bit; not a physical memory path."
+    },
+    "dram_read_total": {
+      "component": "dram_read_total",
+      "pj_per_bit": "11.63614342749419",
+      "note": "Board-level slope for DRAM-streaming ld.global.cs loads over a buffer much larger than L2."
+    },
+    "l2_over_control": {
+      "component": "l2_over_control",
+      "pj_per_bit": "2.5464630349912953",
+      "note": "Lower-bound SM/RF/LSU/L2 read-path increment above the L2-sized control loop."
+    },
+    "dram_over_control": {
+      "component": "dram_over_control",
+      "pj_per_bit": "10.535058168042664",
+      "note": "Whole DRAM-stream global-read path above the DRAM-sized control loop; still board-level."
+    },
+    "dram_global_over_l2": {
+      "component": "dram_global_over_l2",
+      "pj_per_bit": "7.988595133051368",
+      "note": "Additional miss/off-chip increment after removing the L2 read-path estimate: MC + GPU PHY + HBM PHY/core."
+    }
+  },
+  "quality_ok_count": 25,
+  "quality_warnings": [
+    {
+      "level": "warn",
+      "check": "repeat_coverage",
+      "detail": "only 4 fit repeats after warmup; median/IQR stability may be weak"
+    },
+    {
+      "level": "warn",
+      "check": "idle_filter",
+      "detail": "only 0 idle samples below 500 MHz; baseline fell back to all samples"
+    },
+    {
+      "level": "warn",
+      "check": "gpu_setup",
+      "detail": "no clock/persistence/power-limit setup requested; compare clocks in quality CSV"
+    }
+  ],
+  "write_full_result_found": false,
+  "write_latest_metadata": null,
+  "generated_images": [
+    "/workspace/gpupower/dram_util_experiment/reports/read_experiment_completion_review_ko.svg",
+    "/workspace/gpupower/dram_util_experiment/reports/read_energy_breakdown_latest_ko.svg",
+    "/workspace/gpupower/dram_util_experiment/reports/read_write_comparison_status_ko.svg"
+  ]
+}

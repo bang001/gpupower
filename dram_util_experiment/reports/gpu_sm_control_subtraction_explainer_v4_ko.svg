@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1100" viewBox="0 0 1800 1100">
+  <rect width="1800" height="1100" fill="#ffffff"/>
+  <style>
+    text {
+      font-family: 'Noto Sans CJK KR', 'Apple SD Gothic Neo', 'Malgun Gothic', 'NanumGothic', 'Arial Unicode MS', sans-serif;
+      fill: #111111;
+    }
+    .title { font-size: 48px; font-weight: 800; }
+    .subtitle { font-size: 25px; fill: #444444; }
+    .section { font-size: 28px; font-weight: 800; fill: #ffffff; text-anchor: middle; dominant-baseline: middle; }
+    .box-main { font-size: 27px; font-weight: 800; text-anchor: middle; dominant-baseline: middle; }
+    .box-sub { font-size: 22px; font-weight: 650; text-anchor: middle; dominant-baseline: middle; }
+    .note-title { font-size: 25px; font-weight: 800; }
+    .note { font-size: 21px; fill: #333333; }
+    .eq { font-size: 34px; font-weight: 800; text-anchor: middle; dominant-baseline: middle; }
+    .small { font-size: 22px; fill: #333333; }
+    .small-bold { font-size: 23px; font-weight: 800; fill: #333333; }
+  </style>
+  <defs>
+    <marker id="arrow-green" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L12,7 L2,12 z" fill="#2f8f55"/>
+    </marker>
+    <marker id="arrow-gray" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L12,7 L2,12 z" fill="#555555"/>
+    </marker>
+  </defs>
+
+  <text x="90" y="78" class="title">SM 비용은 직접 측정하지 않고 control로 빼서 처리한다</text>
+  <text x="92" y="122" class="subtitle">같은 blocks / threads / loop shape를 유지한 뒤, global read/write가 추가한 비용만 차이로 본다</text>
+
+  <!-- Step 1 -->
+  <rect x="90" y="205" width="245" height="86" rx="14" fill="#777777"/>
+  <text x="212" y="249" class="section">1) Control</text>
+
+  <rect x="385" y="185" width="330" height="128" rx="6" fill="#d9d9d9" stroke="#222222" stroke-width="3"/>
+  <text x="550" y="230" class="box-main">control_l2</text>
+  <text x="550" y="267" class="box-main">control_dram</text>
+
+  <rect x="760" y="185" width="390" height="128" rx="6" fill="#eeeeee" stroke="#222222" stroke-width="3"/>
+  <text x="955" y="219" class="box-main">SM 공통 비용</text>
+  <text x="955" y="253" class="box-sub">loop + index + register</text>
+  <text x="955" y="285" class="box-sub">active clock</text>
+
+  <rect x="1210" y="200" width="420" height="98" rx="8" fill="#f7f7f7" stroke="#777777" stroke-width="2"/>
+  <text x="1420" y="240" class="small-bold" text-anchor="middle">global read/write 없음</text>
+  <text x="1420" y="272" class="small" text-anchor="middle">SM에서 공통 작업만 수행</text>
+
+  <!-- Step 2 -->
+  <rect x="90" y="400" width="245" height="86" rx="14" fill="#2f6fc2"/>
+  <text x="212" y="444" class="section">2) Memory</text>
+
+  <rect x="385" y="375" width="330" height="145" rx="6" fill="#d9d9d9" stroke="#222222" stroke-width="3"/>
+  <text x="550" y="433" class="box-main">같은 SM</text>
+  <text x="550" y="470" class="box-main">공통 비용</text>
+
+  <rect x="715" y="375" width="365" height="145" rx="6" fill="#2f6fc2" stroke="#222222" stroke-width="3"/>
+  <text x="897" y="430" class="box-main" fill="#ffffff">L2 read/write</text>
+  <text x="897" y="468" class="box-main" fill="#ffffff">추가 비용</text>
+
+  <rect x="1080" y="375" width="395" height="145" rx="6" fill="#d94b45" stroke="#222222" stroke-width="3"/>
+  <text x="1277" y="430" class="box-main" fill="#ffffff">DRAM read/write</text>
+  <text x="1277" y="468" class="box-main" fill="#ffffff">추가 비용</text>
+
+  <rect x="1515" y="388" width="235" height="120" rx="8" fill="#f7f7f7" stroke="#777777" stroke-width="2"/>
+  <text x="1632" y="428" class="small-bold" text-anchor="middle">같은 SM 작업</text>
+  <text x="1632" y="462" class="small" text-anchor="middle">+</text>
+  <text x="1632" y="492" class="small-bold" text-anchor="middle">global memory 접근</text>
+
+  <!-- Step 3 -->
+  <rect x="90" y="615" width="245" height="86" rx="14" fill="#f28e2b"/>
+  <text x="212" y="659" class="section">3) 빼기</text>
+
+  <rect x="385" y="590" width="330" height="120" rx="6" fill="#2f6fc2" stroke="#222222" stroke-width="3"/>
+  <text x="550" y="654" class="box-main" fill="#ffffff">memory 단계</text>
+
+  <text x="755" y="660" style="font-size:52px; font-weight:900;" text-anchor="middle">-</text>
+
+  <rect x="795" y="590" width="330" height="120" rx="6" fill="#d9d9d9" stroke="#222222" stroke-width="3"/>
+  <text x="960" y="654" class="box-main">control 단계</text>
+
+  <text x="1165" y="660" style="font-size:50px; font-weight:900;" text-anchor="middle">=</text>
+
+  <rect x="1210" y="590" width="450" height="120" rx="6" fill="#3a9d5d" stroke="#222222" stroke-width="3"/>
+  <text x="1435" y="636" class="box-main" fill="#ffffff">memory path</text>
+  <text x="1435" y="674" class="box-main" fill="#ffffff">증가분</text>
+
+  <line x1="1435" y1="585" x2="1435" y2="528" stroke="#2f8f55" stroke-width="5" marker-end="url(#arrow-green)"/>
+  <text x="1435" y="755" style="font-size:27px; font-weight:800; fill:#2f8f55;" text-anchor="middle">l2_over_control 또는 dram_over_control</text>
+
+  <!-- Bottom equation -->
+  <rect x="95" y="835" width="1610" height="115" rx="16" fill="#fff5e8" stroke="#f28e2b" stroke-width="4"/>
+  <text x="900" y="890" class="eq">dram_global_over_l2 = dram_over_control - l2_over_control</text>
+  <text x="130" y="1005" class="small-bold" fill="#dd6b00">의미: L2 read/write path를 뺀 뒤 남는 L2 이후 off-chip 추가 비용</text>
+  <text x="970" y="1005" class="small">MC + GPU PHY + HBM 쪽에 가까움. 단, 순수 HBM rail 측정은 아님.</text>
+
+  <!-- Caveat panel -->
+  <rect x="1210" y="160" width="495" height="155" rx="12" fill="#f7f7f7" stroke="#555555" stroke-width="3"/>
+  <text x="1245" y="198" class="note-title">주의할 점</text>
+  <text x="1245" y="232" class="note">• SM 순수 에너지를 직접 뽑는 것은 아님</text>
+  <text x="1245" y="264" class="note">• 공통 SM 비용을 matched control로 제거</text>
+  <text x="1245" y="296" class="note">• NCU counter로 L1/L2/DRAM traffic 검증</text>
+
+  <!-- Flow arrows -->
+  <line x1="335" y1="248" x2="380" y2="248" stroke="#555555" stroke-width="4" marker-end="url(#arrow-gray)"/>
+  <line x1="335" y1="443" x2="380" y2="443" stroke="#555555" stroke-width="4" marker-end="url(#arrow-gray)"/>
+  <line x1="335" y1="658" x2="380" y2="658" stroke="#555555" stroke-width="4" marker-end="url(#arrow-gray)"/>
+</svg>

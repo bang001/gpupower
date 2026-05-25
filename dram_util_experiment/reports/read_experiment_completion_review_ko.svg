@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1100" viewBox="0 0 1800 1100">
+  <rect width="1800" height="1100" fill="#ffffff"/>
+  <style>
+    text { font-family: 'Noto Sans CJK KR','Apple SD Gothic Neo','Malgun Gothic','NanumGothic','Arial Unicode MS',sans-serif; fill:#111; }
+    .title { font-size:44px; font-weight:800; }
+    .sub { font-size:24px; fill:#444; }
+    .h { font-size:27px; font-weight:800; }
+    .m { font-size:23px; font-weight:650; }
+    .s { font-size:20px; fill:#333; }
+    .xs { font-size:17px; fill:#444; }
+    .white { fill:#fff; }
+    .mono { font-family:'DejaVu Sans Mono','Consolas',monospace; }
+  </style>
+<text x="80" y="78" class="title" text-anchor="start">Read 실험 완료 여부 검토</text>
+<text x="82" y="122" class="sub" text-anchor="start">최신 결과: reports/nvidia_h100_80gb_hbm3_202605250804</text>
+<rect x="80" y="185" width="780" height="130" rx="14" fill="#f7faff" stroke="#2f6fc2" stroke-width="3"/>
+<text x="110" y="230" class="h" text-anchor="start" fill="#2f6fc2">실행 조건</text>
+<text x="110" y="275" class="m" text-anchor="start">targets=[50, 75, 100], repeats=5, warmup=1</text>
+<rect x="915" y="185" width="780" height="130" rx="14" fill="#f7faff" stroke="#3a9d5d" stroke-width="3"/>
+<text x="945" y="230" class="h" text-anchor="start" fill="#3a9d5d">측정 단계</text>
+<text x="945" y="275" class="m" text-anchor="start">control_l2, l2, control_dram, dram 모두 존재</text>
+<rect x="80" y="360" width="780" height="130" rx="14" fill="#f7faff" stroke="#3a9d5d" stroke-width="3"/>
+<text x="110" y="405" class="h" text-anchor="start" fill="#3a9d5d">CSV row</text>
+<text x="110" y="450" class="m" text-anchor="start">summary rows=60 = 5 x 3 x 4</text>
+<rect x="915" y="360" width="780" height="130" rx="14" fill="#f7faff" stroke="#3a9d5d" stroke-width="3"/>
+<text x="945" y="405" class="h" text-anchor="start" fill="#3a9d5d">fit 품질</text>
+<text x="945" y="450" class="m" text-anchor="start">모든 stage R2 &gt;= 0.99987</text>
+<rect x="80" y="560" width="1640" height="300" rx="12" fill="#ffffff" stroke="#555" stroke-width="2"/>
+<text x="110" y="608" class="h" text-anchor="start">Stage별 slope fit 결과</text>
+<text x="130" y="660" class="m" text-anchor="start" fill="#555">stage</text>
+<text x="500" y="660" class="m" text-anchor="start" fill="#555">pJ/bit</text>
+<text x="760" y="660" class="m" text-anchor="start" fill="#555">R2</text>
+<text x="1035" y="660" class="m" text-anchor="start" fill="#555">max residual W</text>
+<text x="1360" y="660" class="m" text-anchor="start" fill="#555">intercept W</text>
+<text x="130" y="710" class="m" text-anchor="start">control_l2</text>
+<text x="500" y="710" class="m" text-anchor="start">1.678</text>
+<text x="760" y="710" class="m" text-anchor="start">0.999991</text>
+<text x="1035" y="710" class="m" text-anchor="start">0.358</text>
+<text x="1360" y="710" class="m" text-anchor="start">119.950</text>
+<text x="130" y="752" class="m" text-anchor="start">l2</text>
+<text x="500" y="752" class="m" text-anchor="start">4.225</text>
+<text x="760" y="752" class="m" text-anchor="start">0.999987</text>
+<text x="1035" y="752" class="m" text-anchor="start">0.395</text>
+<text x="1360" y="752" class="m" text-anchor="start">119.685</text>
+<text x="130" y="794" class="m" text-anchor="start">control_dram</text>
+<text x="500" y="794" class="m" text-anchor="start">1.101</text>
+<text x="760" y="794" class="m" text-anchor="start">0.999998</text>
+<text x="1035" y="794" class="m" text-anchor="start">0.119</text>
+<text x="1360" y="794" class="m" text-anchor="start">121.344</text>
+<text x="130" y="836" class="m" text-anchor="start">dram</text>
+<text x="500" y="836" class="m" text-anchor="start">11.636</text>
+<text x="760" y="836" class="m" text-anchor="start">0.999877</text>
+<text x="1035" y="836" class="m" text-anchor="start">0.910</text>
+<text x="1360" y="836" class="m" text-anchor="start">121.488</text>
+<rect x="80" y="900" width="1640" height="140" rx="12" fill="#fff8ef" stroke="#f28e2b" stroke-width="3"/>
+<text x="110" y="940" class="h" text-anchor="start" fill="#d66b00">남은 주의점</text>
+<text x="110" y="980" class="s" text-anchor="start">repeat_coverage: only 4 fit repeats after warmup; median/IQR stability may be weak; idle_filter: only 0 idle samples below 500 MHz; baseline fell back to all samples; gpu_setup: no clock/persistence/power-limit setup requested; compare clocks in quality CSV</text>
+<text x="110" y="1018" class="s" text-anchor="start">해석: quick run 기준으로는 정상. 최종 보고용이면 repeats를 더 늘리고 NCU validation을 별도로 수행하는 것이 좋음.</text>
+</svg>

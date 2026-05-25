@@ -1,47 +1,34 @@
 #!/usr/bin/env python3
-"""Read-only GPU memory-path energy decomposition via CuPy + NVML.
+"""Write-only GPU memory-path energy decomposition via CuPy + NVML.
 
-v6 additions: visualization-oriented plots for fit evidence, method logic,
-and thermal/clock diagnostics.
+This is the write-side counterpart to dram_energy_decomp_cupy.py.  It keeps
+that script's repeat/median slope fitting and diagnostics, but replaces the
+read kernels with matched write/control kernels and explicit store cache-policy
+and data-pattern controls.
 
-v5 additions: partial --only-stage decomposition guard, longer idle settle,
-stronger L2 warm default, and temperature quality warnings.
+Write interpretation is harder than read interpretation:
 
-v4 additions: defensive only-stage handling, idle hysteresis filtering,
-fit quality guards, cache-op-aware notes, and NaN-safe plotting/metadata.
+  * Stores can allocate or update L2 and dirty lines may be written back later.
+  * Cache operators are hints, not architectural isolation switches.
+  * Zero/constant data can trigger compression or low-toggle behavior on some
+    GPUs, so the data pattern is part of the experimental condition.
+  * NVML still reports board/GPU-level power, not a DRAM/HBM rail-only value.
 
-v3 additions: optional nvidia-smi clock/persistence setup, robust repeat/median
-fitting, streaming cache-op selection, an optional compute-only calibration stage,
-and explicit Nsight Compute-friendly single-stage execution.
+The four main stages mirror the read experiment:
 
-This is a second-generation experiment for the case where a plain DRAM
-streaming pJ/bit number is too coarse.  It keeps the useful parts of
-`dram_pjbit_cupy.py` (NVRTC preload, NVML polling, plotting helpers), but
-changes the experiment design:
+    control_l2   : same index/pattern/accumulator loop as L2 write, no hot-loop global store
+    l2           : same global store over an L2-sized buffer
+    control_dram : same index/pattern/accumulator loop as DRAM write, no hot-loop global store
+    dram         : same global store over a buffer >> L2
 
-  * Use a read-only workload so writes, compression, dirty L2 writeback, and
-    store-allocation effects do not contaminate the first pass.
-  * Measure four matched stages at multiple active bandwidth points:
-        control_l2   : same grid/loop/index/accumulator shape as L2, no global read
-        l2           : same global read instruction over an L2-resident buffer
-        control_dram : same grid/loop/index/accumulator shape as DRAM, no global read
-        dram         : same global read instruction over a buffer >> L2
-  * Fit average board/GPU power versus measured nominal bandwidth using only
-    active points.  This avoids treating a P8/P12 idle baseline as the active
-    P0 baseline.  v3 can aggregate repeated phase measurements by median before
-    fitting so one noisy phase does not dominate the slope.
-  * Report lower-bound separations:
-        L2-over-control       ~= SM/RF/LSU/L2 read-path increment
-        DRAM-over-control     ~= whole DRAM-stream read path above matched control
-        DRAM-global-over-L2    ~= off-chip miss increment: MC + GPU PHY + HBM PHY/core
-        compute-only          ~= optional no-global-memory SM/FMA dynamic reference
-        vendor-HBM subtract ~= optional external HBM stack prior, not measured
+Derived values are lower-bound board-level separations:
 
-Important limitation: NVIDIA NVML does not expose a DRAM-rail-only sensor on
-ordinary datacenter GPUs.  Pure HBM stack energy must come from external rail
-instrumentation, vendor pJ/bit assumptions, or an NDA-level model.  The optional
-`--hbm-pjbit` argument only subtracts such an external prior from the board-level
-slope; it does not magically measure HBM-only power.
+    L2-over-control       ~= SM/RF/LSU/L2 store-path increment
+    DRAM-over-control     ~= whole DRAM-stream store path above matched control
+    DRAM-global-over-L2    ~= extra off-chip/writeback increment: MC + GPU PHY + HBM PHY/core
+
+Use Nsight Compute dram/lts/l1tex write counters to validate actual physical
+traffic, especially for L2-resident write stages and store cache policies.
 """
 
 from __future__ import annotations
@@ -82,91 +69,68 @@ pynvml = base.pynvml
 
 
 KERNEL_CODE = r"""
-extern "C" __global__
-void decomp_control_read(uint4* __restrict__ sink,
-                         unsigned long long n,
-                         int passes) {
-    unsigned long long tid    = (unsigned long long)blockIdx.x * blockDim.x + threadIdx.x;
-    unsigned long long stride = (unsigned long long)gridDim.x * blockDim.x;
-    uint4 acc = make_uint4(0U, 0U, 0U, 0U);
-
-    for (int p = 0; p < passes; ++p) {
-        for (unsigned long long i = tid; i < n; i += stride) {
-            unsigned int lo = (unsigned int)i;
-            unsigned int hi = (unsigned int)(i >> 32);
-            // Keep enough integer/control work that compiler cannot collapse the loop,
-            // while avoiding any intentional global memory traffic in the hot loop.
-            acc.x ^= lo + (unsigned int)p;
-            acc.y += hi ^ 0x9e3779b9U;
-            acc.z ^= (lo * 0x85ebca6bU) + (unsigned int)p;
-            acc.w += (hi * 0xc2b2ae35U) ^ lo;
-        }
-    }
-
-    // One sink element per warp avoids the heavy many-thread-to-1024-location
-    // write race in the older hierarchy script.  This tiny write is outside the
-    // intended denominator and is identical across stages.
-    unsigned int warp_in_block = threadIdx.x >> 5;
-    if ((threadIdx.x & 31) == 0) {
-        sink[(unsigned long long)blockIdx.x * (blockDim.x >> 5) + warp_in_block] = acc;
-    }
+__device__ __forceinline__
+unsigned int mix32(unsigned int x) {
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+    return x;
 }
 
+__device__ __forceinline__
+uint4 write_pattern_value(unsigned long long i, int p, int pattern) {
+    unsigned int lo = (unsigned int)i;
+    unsigned int hi = (unsigned int)(i >> 32);
+    unsigned int seed = lo ^ (hi * 0x9e3779b9U) ^ ((unsigned int)p * 0x85ebca6bU);
 
-extern "C" __global__
-void decomp_stream_read_ca(const uint4* __restrict__ in,
-                        uint4* __restrict__ sink,
-                        unsigned long long n,
-                        int passes) {
-    unsigned long long tid    = (unsigned long long)blockIdx.x * blockDim.x + threadIdx.x;
-    unsigned long long stride = (unsigned long long)gridDim.x * blockDim.x;
-    uint4 acc = make_uint4(0U, 0U, 0U, 0U);
-
-    for (int p = 0; p < passes; ++p) {
-        for (unsigned long long i = tid; i < n; i += stride) {
-            uint4 v;
-            const unsigned int* ptr = reinterpret_cast<const unsigned int*>(in + i);
-            // ca: cache at all available cache levels.  On NVIDIA GPUs this can
-            // involve L1/TEX as well as L2, so use NCU counters to confirm where
-            // hits actually land for a given working set.
-            asm volatile("ld.global.ca.v4.u32 {%0,%1,%2,%3}, [%4];"
-                         : "=r"(v.x), "=r"(v.y), "=r"(v.z), "=r"(v.w)
-                         : "l"(ptr));
-            acc.x ^= v.x;
-            acc.y += v.y;
-            acc.z ^= v.z + (unsigned int)p;
-            acc.w += v.w ^ (unsigned int)i;
-        }
+    if (pattern == 0) {
+        return make_uint4(0U, 0U, 0U, 0U);
+    }
+    if (pattern == 1) {
+        float x = (float)((p & 255) + 1);
+        return make_uint4(__float_as_uint(x), __float_as_uint(x + 1.f),
+                          __float_as_uint(x + 2.f), __float_as_uint(x + 3.f));
+    }
+    if (pattern == 2) {
+        unsigned int a = lo ^ (hi * 0x9e3779b9U) ^ ((unsigned int)p * 0x10001U);
+        return make_uint4(a, a + 0x3c6ef372U, a + 0xdaa66d2bU, a + 0x78dde6e4U);
+    }
+    if (pattern == 3) {
+        unsigned int a = mix32(seed);
+        unsigned int b = mix32(seed ^ 0x9e3779b9U);
+        unsigned int c = mix32(seed ^ 0x7f4a7c15U);
+        unsigned int d = mix32(seed ^ 0x94d049bbU);
+        return make_uint4(a, b, c, d);
     }
 
-    unsigned int warp_in_block = threadIdx.x >> 5;
-    if ((threadIdx.x & 31) == 0) {
-        sink[(unsigned long long)blockIdx.x * (blockDim.x >> 5) + warp_in_block] = acc;
-    }
+    unsigned int a = ((lo + (unsigned int)p) & 1U) ? 0xffffffffU : 0U;
+    return make_uint4(a, ~a, a ^ 0xaaaaaaaaU, a ^ 0x55555555U);
+}
+
+__device__ __forceinline__
+uint4 consume_write_value(uint4 acc, uint4 v, unsigned long long i) {
+    unsigned int lo = (unsigned int)i;
+    unsigned int hi = (unsigned int)(i >> 32);
+    acc.x ^= v.x ^ lo;
+    acc.y += v.y ^ hi;
+    acc.z ^= v.z + (lo * 0x9e3779b9U);
+    acc.w += v.w ^ (hi * 0x85ebca6bU);
+    return acc;
 }
 
 extern "C" __global__
-void decomp_stream_read_cg(const uint4* __restrict__ in,
-                        uint4* __restrict__ sink,
-                        unsigned long long n,
-                        int passes) {
+void decomp_control_write(uint4* __restrict__ sink,
+                          unsigned long long n,
+                          int passes,
+                          int pattern) {
     unsigned long long tid    = (unsigned long long)blockIdx.x * blockDim.x + threadIdx.x;
     unsigned long long stride = (unsigned long long)gridDim.x * blockDim.x;
     uint4 acc = make_uint4(0U, 0U, 0U, 0U);
 
     for (int p = 0; p < passes; ++p) {
         for (unsigned long long i = tid; i < n; i += stride) {
-            uint4 v;
-            const unsigned int* ptr = reinterpret_cast<const unsigned int*>(in + i);
-            // cg: bypass L1 and allocate/probe through L2.  L2 still cannot be
-            // disabled from normal CUDA; the DRAM phase relies on reuse distance >> L2.
-            asm volatile("ld.global.cg.v4.u32 {%0,%1,%2,%3}, [%4];"
-                         : "=r"(v.x), "=r"(v.y), "=r"(v.z), "=r"(v.w)
-                         : "l"(ptr));
-            acc.x ^= v.x;
-            acc.y += v.y;
-            acc.z ^= v.z + (unsigned int)p;
-            acc.w += v.w ^ (unsigned int)i;
+            uint4 v = write_pattern_value(i, p, pattern);
+            acc = consume_write_value(acc, v, i);
         }
     }
 
@@ -177,27 +141,111 @@ void decomp_stream_read_cg(const uint4* __restrict__ in,
 }
 
 extern "C" __global__
-void decomp_stream_read_cs(const uint4* __restrict__ in,
-                           uint4* __restrict__ sink,
-                           unsigned long long n,
-                           int passes) {
+void decomp_stream_write_wb(uint4* __restrict__ out,
+                            uint4* __restrict__ sink,
+                            unsigned long long n,
+                            int passes,
+                            int pattern) {
     unsigned long long tid    = (unsigned long long)blockIdx.x * blockDim.x + threadIdx.x;
     unsigned long long stride = (unsigned long long)gridDim.x * blockDim.x;
     uint4 acc = make_uint4(0U, 0U, 0U, 0U);
 
     for (int p = 0; p < passes; ++p) {
         for (unsigned long long i = tid; i < n; i += stride) {
-            uint4 v;
-            const unsigned int* ptr = reinterpret_cast<const unsigned int*>(in + i);
-            // cs: streaming/evict-first hint.  This is NOT a guaranteed L2 bypass,
-            // but it reduces cache residency pressure for the DRAM-stream phase.
-            asm volatile("ld.global.cs.v4.u32 {%0,%1,%2,%3}, [%4];"
-                         : "=r"(v.x), "=r"(v.y), "=r"(v.z), "=r"(v.w)
-                         : "l"(ptr));
-            acc.x ^= v.x;
-            acc.y += v.y;
-            acc.z ^= v.z + (unsigned int)p;
-            acc.w += v.w ^ (unsigned int)i;
+            uint4 v = write_pattern_value(i, p, pattern);
+            unsigned int* ptr = reinterpret_cast<unsigned int*>(out + i);
+            // wb/default: normal write-back global store policy.
+            asm volatile("st.global.v4.u32 [%0], {%1,%2,%3,%4};"
+                         :
+                         : "l"(ptr), "r"(v.x), "r"(v.y), "r"(v.z), "r"(v.w)
+                         : "memory");
+            acc = consume_write_value(acc, v, i);
+        }
+    }
+
+    unsigned int warp_in_block = threadIdx.x >> 5;
+    if ((threadIdx.x & 31) == 0) {
+        sink[(unsigned long long)blockIdx.x * (blockDim.x >> 5) + warp_in_block] = acc;
+    }
+}
+
+extern "C" __global__
+void decomp_stream_write_cg(uint4* __restrict__ out,
+                            uint4* __restrict__ sink,
+                            unsigned long long n,
+                            int passes,
+                            int pattern) {
+    unsigned long long tid    = (unsigned long long)blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long stride = (unsigned long long)gridDim.x * blockDim.x;
+    uint4 acc = make_uint4(0U, 0U, 0U, 0U);
+
+    for (int p = 0; p < passes; ++p) {
+        for (unsigned long long i = tid; i < n; i += stride) {
+            uint4 v = write_pattern_value(i, p, pattern);
+            unsigned int* ptr = reinterpret_cast<unsigned int*>(out + i);
+            asm volatile("st.global.cg.v4.u32 [%0], {%1,%2,%3,%4};"
+                         :
+                         : "l"(ptr), "r"(v.x), "r"(v.y), "r"(v.z), "r"(v.w)
+                         : "memory");
+            acc = consume_write_value(acc, v, i);
+        }
+    }
+
+    unsigned int warp_in_block = threadIdx.x >> 5;
+    if ((threadIdx.x & 31) == 0) {
+        sink[(unsigned long long)blockIdx.x * (blockDim.x >> 5) + warp_in_block] = acc;
+    }
+}
+
+extern "C" __global__
+void decomp_stream_write_cs(uint4* __restrict__ out,
+                            uint4* __restrict__ sink,
+                            unsigned long long n,
+                            int passes,
+                            int pattern) {
+    unsigned long long tid    = (unsigned long long)blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long stride = (unsigned long long)gridDim.x * blockDim.x;
+    uint4 acc = make_uint4(0U, 0U, 0U, 0U);
+
+    for (int p = 0; p < passes; ++p) {
+        for (unsigned long long i = tid; i < n; i += stride) {
+            uint4 v = write_pattern_value(i, p, pattern);
+            unsigned int* ptr = reinterpret_cast<unsigned int*>(out + i);
+            // cs: streaming/evict-first hint.  Validate writeback behavior with NCU.
+            asm volatile("st.global.cs.v4.u32 [%0], {%1,%2,%3,%4};"
+                         :
+                         : "l"(ptr), "r"(v.x), "r"(v.y), "r"(v.z), "r"(v.w)
+                         : "memory");
+            acc = consume_write_value(acc, v, i);
+        }
+    }
+
+    unsigned int warp_in_block = threadIdx.x >> 5;
+    if ((threadIdx.x & 31) == 0) {
+        sink[(unsigned long long)blockIdx.x * (blockDim.x >> 5) + warp_in_block] = acc;
+    }
+}
+
+extern "C" __global__
+void decomp_stream_write_wt(uint4* __restrict__ out,
+                            uint4* __restrict__ sink,
+                            unsigned long long n,
+                            int passes,
+                            int pattern) {
+    unsigned long long tid    = (unsigned long long)blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long stride = (unsigned long long)gridDim.x * blockDim.x;
+    uint4 acc = make_uint4(0U, 0U, 0U, 0U);
+
+    for (int p = 0; p < passes; ++p) {
+        for (unsigned long long i = tid; i < n; i += stride) {
+            uint4 v = write_pattern_value(i, p, pattern);
+            unsigned int* ptr = reinterpret_cast<unsigned int*>(out + i);
+            // wt: write-through hint, useful for cache-policy sensitivity runs.
+            asm volatile("st.global.wt.v4.u32 [%0], {%1,%2,%3,%4};"
+                         :
+                         : "l"(ptr), "r"(v.x), "r"(v.y), "r"(v.z), "r"(v.w)
+                         : "memory");
+            acc = consume_write_value(acc, v, i);
         }
     }
 
@@ -219,8 +267,6 @@ void decomp_compute_fma(uint4* __restrict__ sink,
 
     for (int p = 0; p < passes; ++p) {
         for (unsigned long long i = tid; i < n; i += stride) {
-            // Intentional no-global-memory compute reference.  Four dependent FMAs
-            // keep the loop from becoming a pure integer/control microbenchmark.
             asm volatile("fma.rn.f32 %0, %1, %2, %3;" : "=f"(x) : "f"(x), "f"(y), "f"(z));
             asm volatile("fma.rn.f32 %0, %1, %2, %3;" : "=f"(y) : "f"(y), "f"(z), "f"(x));
             asm volatile("fma.rn.f32 %0, %1, %2, %3;" : "=f"(z) : "f"(z), "f"(x), "f"(y));
@@ -239,6 +285,15 @@ void decomp_compute_fma(uint4* __restrict__ sink,
 """
 
 
+WRITE_PATTERN_CODES = {
+    "zero": 0,
+    "const": 1,
+    "address": 2,
+    "random": 3,
+    "toggle": 4,
+}
+
+
 @dataclass(frozen=True)
 class WorkloadSpec:
     stage: str
@@ -247,6 +302,8 @@ class WorkloadSpec:
     buffer_kind: str
     does_global_read: bool
     cache_op: str
+    pattern: str
+    pattern_code: int
     is_compute: bool
     n_u4: int
     buf_bytes: int
@@ -328,16 +385,16 @@ STAGE_LABELS = {
 
 COMPONENT_LABELS = {
     "control_l2_loop": "control\nL2 loop",
-    "l2_read_total": "L2 read\ntotal",
+    "l2_write_total": "L2 write\ntotal",
     "control_dram_loop": "control\nDRAM loop",
-    "dram_read_total": "DRAM read\ntotal",
+    "dram_write_total": "DRAM write\ntotal",
     "l2_over_control": "L2 over\ncontrol",
     "dram_over_control": "DRAM over\ncontrol",
     "dram_global_over_l2": "DRAM over\nL2",
     "compute_only_reference": "compute\nreference",
     "hbm_stack_external_prior": "external\nHBM prior",
     "gpu_side_after_l2_est": "GPU side\nafter L2",
-    "gpu_side_whole_read_path_est": "GPU side\nwhole path",
+    "gpu_side_whole_write_path_est": "GPU side\nwhole path",
     "decomposition_incomplete": "incomplete",
 }
 
@@ -401,23 +458,24 @@ def mean(vals: list[float]) -> float:
 
 
 def make_specs(l2_bytes: int, dram_bytes: int, l2_cache_op: str,
-               dram_cache_op: str, include_compute: bool) -> list[WorkloadSpec]:
+               dram_cache_op: str, write_pattern: str, include_compute: bool) -> list[WorkloadSpec]:
     l2_n = l2_bytes // 16
     dram_n = dram_bytes // 16
+    pattern_code = WRITE_PATTERN_CODES[write_pattern]
     specs = [
-        WorkloadSpec("control_l2", "control_l2_read", "decomp_control_read", "none",
-                     False, "none", False, l2_n, l2_bytes),
-        WorkloadSpec("l2", f"l2_read_{l2_cache_op}", f"decomp_stream_read_{l2_cache_op}", "l2",
-                     True, l2_cache_op, False, l2_n, l2_bytes),
-        WorkloadSpec("control_dram", "control_dram_read", "decomp_control_read", "none",
-                     False, "none", False, dram_n, dram_bytes),
-        WorkloadSpec("dram", f"dram_read_{dram_cache_op}", f"decomp_stream_read_{dram_cache_op}", "dram",
-                     True, dram_cache_op, False, dram_n, dram_bytes),
+        WorkloadSpec("control_l2", f"control_l2_write_{write_pattern}", "decomp_control_write", "none",
+                     False, "none", write_pattern, pattern_code, False, l2_n, l2_bytes),
+        WorkloadSpec("l2", f"l2_write_{l2_cache_op}_{write_pattern}", f"decomp_stream_write_{l2_cache_op}", "l2",
+                     True, l2_cache_op, write_pattern, pattern_code, False, l2_n, l2_bytes),
+        WorkloadSpec("control_dram", f"control_dram_write_{write_pattern}", "decomp_control_write", "none",
+                     False, "none", write_pattern, pattern_code, False, dram_n, dram_bytes),
+        WorkloadSpec("dram", f"dram_write_{dram_cache_op}_{write_pattern}", f"decomp_stream_write_{dram_cache_op}", "dram",
+                     True, dram_cache_op, write_pattern, pattern_code, False, dram_n, dram_bytes),
     ]
     if include_compute:
         specs.append(
             WorkloadSpec("compute", "compute_fma", "decomp_compute_fma", "none",
-                         False, "none", True, dram_n, dram_bytes)
+                         False, "none", "none", 0, True, dram_n, dram_bytes)
         )
     return specs
 
@@ -428,17 +486,16 @@ def launch(spec: WorkloadSpec, kernels: dict[str, object], stream,
     kernel = kernels[spec.kernel_name]
     with stream:
         if spec.is_compute:
-            # Compute reference intentionally shares the no-global-memory signature,
-            # but dispatch it explicitly so future signature changes do not silently
-            # fall through the control-path branch.
             kernel((blocks,), (threads,), (sink, np.uint64(spec.n_u4), np.int32(passes)))
         elif not spec.does_global_read:
-            kernel((blocks,), (threads,), (sink, np.uint64(spec.n_u4), np.int32(passes)))
+            kernel((blocks,), (threads,),
+                   (sink, np.uint64(spec.n_u4), np.int32(passes), np.int32(spec.pattern_code)))
         else:
             if spec.buffer_kind not in buffers:
                 raise KeyError(f"missing buffer for stage={spec.stage} buffer_kind={spec.buffer_kind}")
             kernel((blocks,), (threads,),
-                   (buffers[spec.buffer_kind], sink, np.uint64(spec.n_u4), np.int32(passes)))
+                   (buffers[spec.buffer_kind], sink, np.uint64(spec.n_u4),
+                    np.int32(passes), np.int32(spec.pattern_code)))
 
 
 def warm_l2_if_needed(spec: WorkloadSpec, kernels: dict[str, object], stream,
@@ -656,13 +713,13 @@ def build_decomp(fits: dict[str, FitResult], hbm_pjbit: float | None,
 
     def single_stage_note(stage: str) -> str:
         if stage == "control_l2":
-            return "Partial run: matched L2-sized loop/control slope only; not a physical memory path."
+            return "Partial run: matched L2-sized write pattern/control slope only; not a physical memory path."
         if stage == "l2":
-            return f"Partial run: L2-resident ld.global.{l2_cache_op} stage slope; full L2-over-control requires control_l2 too."
+            return f"Partial run: L2-sized st.global.{l2_cache_op} stage slope; full L2-over-control requires control_l2 too."
         if stage == "control_dram":
-            return "Partial run: matched DRAM-sized loop/control slope only; not a physical memory path."
+            return "Partial run: matched DRAM-sized write pattern/control slope only; not a physical memory path."
         if stage == "dram":
-            return f"Partial run: DRAM-streaming ld.global.{dram_cache_op} stage slope; full off-chip decomposition requires all four main stages."
+            return f"Partial run: DRAM-streaming st.global.{dram_cache_op} stage slope; full off-chip decomposition requires all four main stages."
         if stage == "compute":
             return "Partial run: no-global-memory FMA reference normalized by nominal loop bytes; not memory pJ/bit."
         return "Partial run stage slope."
@@ -697,37 +754,37 @@ def build_decomp(fits: dict[str, FitResult], hbm_pjbit: float | None,
         DecompResult(
             "control_l2_loop",
             ctrl_l2,
-            "Matched index/loop/accumulator cost per L2-buffer nominal bit; not a physical memory path.",
+            "Matched index/pattern/accumulator cost per L2-buffer nominal bit; not a physical memory path.",
         ),
         DecompResult(
-            "l2_read_total",
+            "l2_write_total",
             l2,
-            f"Board-level slope for L2-resident ld.global.{l2_cache_op} loads, including SM/RF/LSU/L2 and active clocks.",
+            f"Board-level slope for L2-sized st.global.{l2_cache_op} stores, including SM/RF/LSU/L2 and active clocks.",
         ),
         DecompResult(
             "control_dram_loop",
             ctrl_dram,
-            "Matched index/loop/accumulator cost per DRAM-buffer nominal bit; not a physical memory path.",
+            "Matched index/pattern/accumulator cost per DRAM-buffer nominal bit; not a physical memory path.",
         ),
         DecompResult(
-            "dram_read_total",
+            "dram_write_total",
             dram,
-            f"Board-level slope for DRAM-streaming ld.global.{dram_cache_op} loads over a buffer much larger than L2.",
+            f"Board-level slope for DRAM-streaming st.global.{dram_cache_op} stores over a buffer much larger than L2.",
         ),
         DecompResult(
             "l2_over_control",
             l2_path,
-            "Lower-bound SM/RF/LSU/L2 read-path increment above the L2-sized control loop.",
+            "Lower-bound SM/RF/LSU/L2 store-path increment above the L2-sized control loop.",
         ),
         DecompResult(
             "dram_over_control",
             dram_path,
-            "Whole DRAM-stream global-read path above the DRAM-sized control loop; still board-level.",
+            "Whole DRAM-stream global-store path above the DRAM-sized control loop; still board-level.",
         ),
         DecompResult(
             "dram_global_over_l2",
             offchip_increment,
-            "Additional miss/off-chip increment after removing the L2 read-path estimate: MC + GPU PHY + HBM PHY/core.",
+            "Additional off-chip/writeback increment after removing the L2 store-path estimate: MC + GPU PHY + HBM PHY/core.",
         ),
     ]
     if "compute" in fits:
@@ -741,7 +798,7 @@ def build_decomp(fits: dict[str, FitResult], hbm_pjbit: float | None,
             DecompResult(
                 "hbm_stack_external_prior",
                 hbm_pjbit,
-                "External HBM stack/PHY prior supplied by --hbm-pjbit; not measured by NVML.",
+                "External HBM stack/PHY write prior supplied by --hbm-pjbit; not measured by NVML.",
             ),
             DecompResult(
                 "gpu_side_after_l2_est",
@@ -749,12 +806,13 @@ def build_decomp(fits: dict[str, FitResult], hbm_pjbit: float | None,
                 "DRAM-global-over-L2 minus external HBM prior; estimates MC/GPU-PHY side residual.",
             ),
             DecompResult(
-                "gpu_side_whole_read_path_est",
+                "gpu_side_whole_write_path_est",
                 dram_path - hbm_pjbit if finite(dram_path) else float("nan"),
                 "DRAM-over-control minus external HBM prior; estimates SM-to-GPU-PHY side residual.",
             ),
         ])
     return out
+
 
 def save_rows(path: Path, rows: Iterable[object | dict]) -> None:
     rows = list(rows)
@@ -970,12 +1028,12 @@ def save_method_plot(path: Path, gpu_name: str, decomp: list[DecompResult],
             ax.text((x0 + x1) / 2, (y0 + y1) / 2 + 0.025, label, ha="center", va="bottom", fontsize=9)
 
     box(0.05, 0.68, "control_l2\nloop only", stage_color("control_l2"))
-    box(0.05, 0.46, f"l2\nld.global.{l2_cache_op}", stage_color("l2"))
+    box(0.05, 0.46, f"l2\nst.global.{l2_cache_op}", stage_color("l2"))
     box(0.33, 0.56, "l2_over_control\n= l2 - control_l2", component_color("l2_over_control"), w=0.24)
     arrow(0.23, 0.74, 0.33, 0.64)
     arrow(0.23, 0.52, 0.33, 0.60)
     box(0.05, 0.26, "control_dram\nloop only", stage_color("control_dram"))
-    box(0.05, 0.04, f"dram\nld.global.{dram_cache_op}", stage_color("dram"))
+    box(0.05, 0.04, f"dram\nst.global.{dram_cache_op}", stage_color("dram"))
     box(0.33, 0.14, "dram_over_control\n= dram - control_dram", component_color("dram_over_control"), w=0.24)
     arrow(0.23, 0.32, 0.33, 0.22)
     arrow(0.23, 0.10, 0.33, 0.18)
@@ -995,7 +1053,7 @@ def save_method_plot(path: Path, gpu_name: str, decomp: list[DecompResult],
         ax.text(0.50, 0.88, "Partial validation run: complete decomposition requires all four main stages.",
                 ha="center", va="center", fontsize=11, color="darkred",
                 bbox={"boxstyle": "round,pad=0.35", "fc": "#fff5f5", "ec": "darkred"})
-    ax.text(0.02, 0.94, f"Read-path decomposition logic - {gpu_name}", ha="left", va="center", fontsize=15, weight="bold")
+    ax.text(0.02, 0.94, f"Write-path decomposition logic - {gpu_name}", ha="left", va="center", fontsize=15, weight="bold")
     ax.text(0.02, 0.90, "Slopes are board/NVML-level avg_power~nominal_bandwidth fits; control slopes are loop-equivalent baselines.",
             ha="left", va="center", fontsize=10)
     fig.tight_layout()
@@ -1032,7 +1090,7 @@ def save_decomp_plot(path: Path, gpu_name: str, fits: list[FitResult],
             ax1.text(i, vals[i], safe_bar_label(d.pj_per_bit), ha="center", va="bottom", fontsize=8)
         else:
             ax1.text(i, 0.0, "n/a", ha="center", va="bottom", fontsize=8, rotation=90)
-    fig.suptitle(f"Read-path energy decomposition - {gpu_name}")
+    fig.suptitle(f"Write-path energy decomposition - {gpu_name}")
     fig.tight_layout(rect=(0, 0, 1, 0.93))
     fig.savefig(path, dpi=170)
     plt.close(fig)
@@ -1340,8 +1398,10 @@ def main() -> None:
     ap.add_argument("--cal-repeats", type=int, default=3)
     ap.add_argument("--l2-warm-passes", type=int, default=4,
                     help="L2 buffer warmup passes immediately before each L2 phase")
-    ap.add_argument("--l2-cache-op", choices=["ca", "cg", "cs"], default="cg")
-    ap.add_argument("--dram-cache-op", choices=["ca", "cg", "cs"], default="cs")
+    ap.add_argument("--l2-cache-op", choices=["wb", "cg", "cs", "wt"], default="wb")
+    ap.add_argument("--dram-cache-op", choices=["wb", "cg", "cs", "wt"], default="cs")
+    ap.add_argument("--write-pattern", choices=sorted(WRITE_PATTERN_CODES), default="address",
+                    help="data pattern for write stages; sweep zero/const/address/random/toggle for compression/toggle sensitivity")
     ap.add_argument("--include-compute", action="store_true",
                     help="also run a no-global-memory FMA reference stage")
     ap.add_argument("--fit-aggregate", choices=["median", "raw"], default="median",
@@ -1356,7 +1416,7 @@ def main() -> None:
                     help="run one stage only; mainly useful for Nsight Compute validation")
     ap.add_argument("--out-dir", default="reports")
     ap.add_argument("--flat-output", action="store_true")
-    ap.add_argument("--tag", default="read_decomp")
+    ap.add_argument("--tag", default="write_decomp")
     ap.add_argument("--r2-warn", type=float, default=0.98)
     ap.add_argument("--clock-warn-mhz", type=float, default=75.0)
     ap.add_argument("--temperature-warn-c", type=float, default=80.0,
@@ -1422,7 +1482,7 @@ def main() -> None:
     print(f"[info] GPU={gpu_name} SMs={sm_count} L2={l2_size_bytes/(1<<20):.1f} MiB")
     print(f"[info] buffers: l2={args.l2_buf_bytes/(1<<20):.2f} MiB "
           f"dram={args.dram_buf_bytes/(1<<30):.2f} GiB")
-    print(f"[info] blocks={blocks} threads={args.threads} targets={args.targets} repeats={args.repeats}")
+    print(f"[info] blocks={blocks} threads={args.threads} targets={args.targets} repeats={args.repeats} write_pattern={args.write_pattern}")
     if base._nvrtc_path:
         print(f"[info] preloaded nvrtc: {base._nvrtc_path}")
 
@@ -1436,10 +1496,11 @@ def main() -> None:
 
     module = cp.RawModule(code=KERNEL_CODE, options=("--std=c++14",))
     kernels = {
-        "decomp_control_read": module.get_function("decomp_control_read"),
-        "decomp_stream_read_ca": module.get_function("decomp_stream_read_ca"),
-        "decomp_stream_read_cg": module.get_function("decomp_stream_read_cg"),
-        "decomp_stream_read_cs": module.get_function("decomp_stream_read_cs"),
+        "decomp_control_write": module.get_function("decomp_control_write"),
+        "decomp_stream_write_wb": module.get_function("decomp_stream_write_wb"),
+        "decomp_stream_write_cg": module.get_function("decomp_stream_write_cg"),
+        "decomp_stream_write_cs": module.get_function("decomp_stream_write_cs"),
+        "decomp_stream_write_wt": module.get_function("decomp_stream_write_wt"),
         "decomp_compute_fma": module.get_function("decomp_compute_fma"),
     }
     stream = cp.cuda.Stream(non_blocking=True)
@@ -1447,12 +1508,14 @@ def main() -> None:
         args.include_compute = True
         print("[info] --only-stage=compute requested; enabling --include-compute automatically")
     specs = make_specs(args.l2_buf_bytes, args.dram_buf_bytes,
-                       args.l2_cache_op, args.dram_cache_op, args.include_compute)
+                       args.l2_cache_op, args.dram_cache_op,
+                       args.write_pattern, args.include_compute)
     if args.only_stage:
         specs = [s for s in specs if s.stage == args.only_stage]
         if not specs:
             all_specs = make_specs(args.l2_buf_bytes, args.dram_buf_bytes,
-                                   args.l2_cache_op, args.dram_cache_op, True)
+                                   args.l2_cache_op, args.dram_cache_op,
+                                   args.write_pattern, True)
             valid = sorted({s.stage for s in all_specs})
             raise SystemExit(
                 f"--only-stage={args.only_stage!r} matched no specs. "
@@ -1536,7 +1599,7 @@ def main() -> None:
     out_dir = base.resolve_output_dir(args.out_dir, gpu_name, args.flat_output, run_stamp_minute)
     stamp = time.strftime("%Y%m%d_%H%M%S")
     suffix = f"_{args.tag}" if args.tag else ""
-    stem = f"read_energy_decomp_{base.safe_name(gpu_name)}_{stamp}{suffix}"
+    stem = f"write_energy_decomp_{base.safe_name(gpu_name)}_{stamp}{suffix}"
 
     stages_for_fit: list[str] = []
     for spec in specs:
@@ -1612,19 +1675,18 @@ def main() -> None:
             "decomposition": str(decomp_png),
         },
         "method_notes": [
-            "Recommended values come from avg_power vs bandwidth slopes over active phases, not P8 idle subtraction.",
+            "Recommended values come from avg_power vs bandwidth slopes over active write phases, not P8 idle subtraction.",
             "Idle baseline can prefer low-SM-clock samples for diagnostic dynamic_power columns; fits do not depend on idle subtraction.",
             "--only-stage is intended for Nsight Compute validation and produces partial stage-slope output, not a complete decomposition.",
             "Temperature and clock quality warnings should be checked before comparing A100/H100 slopes.",
-            "control/l2/dram use the same grid, loop shape, and accumulator sink convention.",
-            "l2 phases are warmed immediately before measurement to improve L2 residency.",
-            "dram phases rely on DRAM buffer much larger than L2 and a streaming cache-op hint to make L1/L2 hits unlikely.",
-            "ld.global.ca caches at all available cache levels and can include L1/TEX effects; validate with Nsight Compute l1tex/lts counters.",
-            "ld.global.cs is an evict-first/streaming hint, not an architectural guarantee of L2 bypass.",
+            "control/l2/dram use the same grid, write-pattern generation, loop shape, and accumulator sink convention.",
+            "l2 write phases are warmed immediately before measurement to improve L2 residency, but dirty-line writeback must be checked with NCU.",
+            "dram write phases rely on DRAM buffer much larger than L2 and a streaming store cache-op hint to make cache residency unlikely.",
+            "st.global cache operators are hints, not architectural guarantees of L1/L2 bypass or immediate writeback.",
             "Visualization plots: _fit.png is the primary slope-readout plot; _diagnostics.png exposes clock/thermal drift; _method.png explains component formulas.",
             "compute stage, when enabled, is a no-global-memory SM/FMA dynamic reference and is not subtracted from HBM.",
-            "Use Nsight Compute physical dram/lts bytes to validate physical denominators and cache residency.",
-            "--hbm-pjbit is an external HBM prior; NVML does not separately measure HBM stack energy.",
+            "Use Nsight Compute physical dram/lts/l1tex write counters to validate physical denominators, cache residency, and writeback timing.",
+            "--hbm-pjbit is an external HBM write prior; NVML does not separately measure HBM stack energy.",
         ],
     }
     metadata_json.write_text(json.dumps(metadata, indent=2, sort_keys=True, default=str))

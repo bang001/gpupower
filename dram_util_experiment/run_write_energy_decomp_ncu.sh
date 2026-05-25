@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Nsight Compute validation for dram_energy_decomp_cupy.py.
+# Nsight Compute validation for dram_write_energy_decomp_cupy.py.
 # This validates physical DRAM/L2/LSU counters separately from the NVML power run.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -8,16 +8,17 @@ cd "$SCRIPT_DIR"
 usage() {
   cat <<'EOF'
 Usage:
-  ./run_energy_decomp_ncu.sh --device 0 --tag h100_decomp_ncu --dram-buf-bytes 8589934592
+  ./run_write_energy_decomp_ncu.sh --device 0 --tag h100_write_decomp_ncu --dram-buf-bytes 8589934592
 
 Options:
   --device N              CUDA/NVML GPU index. Default: 0
-  --tag TAG               Output tag. Default: energy_decomp_ncu
+  --tag TAG               Output tag. Default: write_energy_decomp_ncu
   --stages "..."          Space-separated stages. Default: control_l2 l2 control_dram dram
-  --dram-buf-bytes N      Passed to dram_energy_decomp_cupy.py
-  --l2-buf-bytes N        Passed to dram_energy_decomp_cupy.py
-  --l2-cache-op OP        ca, cg, or cs. Default: cg
-  --dram-cache-op OP      ca, cg, or cs. Default: cs
+  --dram-buf-bytes N      Passed to dram_write_energy_decomp_cupy.py
+  --l2-buf-bytes N        Passed to dram_write_energy_decomp_cupy.py
+  --l2-cache-op OP        wb, cg, cs, or wt. Default: wb
+  --dram-cache-op OP      wb, cg, cs, or wt. Default: cs
+  --write-pattern P       zero, const, address, random, or toggle. Default: address
   --ncu-bin PATH          Nsight Compute CLI. Default: ncu
   --ncu-metrics CSV       Explicit metric CSV, "auto", or "set". Default: auto
   --ncu-set NAME          Metric set fallback. Default: full
@@ -25,17 +26,18 @@ Options:
   --launch-count N        Kernel launches to profile. Default: 1
   --out-dir DIR           Output directory. Default: reports
   --flat-output           Write directly to --out-dir
-  --                       Extra args passed to run_energy_decomp.sh
+  --                       Extra args passed to run_write_energy_decomp.sh
 EOF
 }
 
 DEVICE="0"
-TAG="energy_decomp_ncu"
+TAG="write_energy_decomp_ncu"
 STAGES_STR="control_l2 l2 control_dram dram"
 DRAM_BUF_BYTES=""
 L2_BUF_BYTES=""
-L2_CACHE_OP="cg"
+L2_CACHE_OP="wb"
 DRAM_CACHE_OP="cs"
+WRITE_PATTERN="address"
 NCU_BIN="${NCU_BIN:-ncu}"
 NCU_METRICS="auto"
 NCU_SET="full"
@@ -54,6 +56,7 @@ while [[ $# -gt 0 ]]; do
     --l2-buf-bytes) L2_BUF_BYTES="$2"; shift 2 ;;
     --l2-cache-op) L2_CACHE_OP="$2"; shift 2 ;;
     --dram-cache-op) DRAM_CACHE_OP="$2"; shift 2 ;;
+    --write-pattern) WRITE_PATTERN="$2"; shift 2 ;;
     --ncu-bin) NCU_BIN="$2"; shift 2 ;;
     --ncu-metrics) NCU_METRICS="$2"; shift 2 ;;
     --ncu-set) NCU_SET="$2"; shift 2 ;;
@@ -118,7 +121,9 @@ select_auto_ncu_metrics() {
     lts__t_sectors_op_read.sum
     lts__t_sectors_op_write.sum
     lts__t_sectors_srcunit_tex_op_read.sum
+    lts__t_sectors_srcunit_l1_op_write.sum
     l1tex__t_sectors_pipe_lsu_mem_global_op_ld.sum
+    l1tex__t_sectors_pipe_lsu_mem_global_op_st.sum
     smsp__inst_executed_pipe_lsu.sum
     smsp__inst_executed_pipe_fma.sum
     smsp__sass_thread_inst_executed_op_fadd_pred_on.sum
@@ -134,8 +139,8 @@ select_auto_ncu_metrics() {
 
 kernel_regex_for_stage() {
   case "$1" in
-    control_l2|control_dram) printf '%s' 'decomp_control_read' ;;
-    l2|dram) printf '%s' 'decomp_stream_read_.*' ;;
+    control_l2|control_dram) printf '%s' 'decomp_control_write' ;;
+    l2|dram) printf '%s' 'decomp_stream_write_.*' ;;
     compute) printf '%s' 'decomp_compute_fma' ;;
     *) echo "[err] unknown stage: $1" >&2; exit 2 ;;
   esac
@@ -170,7 +175,7 @@ for stage in "${STAGES[@]}"; do
   kernel="$(kernel_regex_for_stage "$stage")"
   report_base="$OUT_DIR/${TAG}_${stage}"
   app_cmd=(
-    "$SCRIPT_DIR/run_energy_decomp.sh"
+    "$SCRIPT_DIR/run_write_energy_decomp.sh"
     --device "$DEVICE"
     --only-stage "$stage"
     --targets 100
@@ -180,6 +185,7 @@ for stage in "${STAGES[@]}"; do
     --idle-seconds 0.2
     --l2-cache-op "$L2_CACHE_OP"
     --dram-cache-op "$DRAM_CACHE_OP"
+    --write-pattern "$WRITE_PATTERN"
     --tag "${TAG}_${stage}"
     --out-dir "$OUT_DIR"
   )
@@ -220,4 +226,4 @@ for stage in "${STAGES[@]}"; do
 done
 
 echo
-echo "[done] energy-decomposition NCU reports: $OUT_DIR/${TAG}_*.ncu-rep"
+echo "[done] write energy-decomposition NCU reports: $OUT_DIR/${TAG}_*.ncu-rep"

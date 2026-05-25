@@ -4,3 +4,11 @@
 !util_cupy_rtx_3090_20260417_183743.csv
 !util_cupy_rtx_3090_20260417_183743.png
 !pjbit_method.png
+# Curated explanatory/review artifacts generated during energy decomposition work.
+!gpu_read_energy_decomposition_explainer.png
+!gpu_read_energy_breakdown_simple.png
+!gpu_sm_control_subtraction_explainer_v4_ko.svg
+!read_experiment_completion_review_ko.svg
+!read_energy_breakdown_latest_ko.svg
+!read_write_comparison_status_ko.svg
+!energy_decomp_review_summary.json
