@@ -1,0 +1,29 @@
+level,check,detail
+warn,repeat_coverage,only 2 fit repeats after warmup; median/IQR stability may be weak
+ok,idle_iqr,idle power IQR 0.691 W
+warn,idle_filter,only 0 idle samples below 500 MHz; baseline fell back to all samples
+warn,gpu_setup,no clock/persistence/power-limit setup requested; compare clocks in quality CSV
+ok,decomposition_coverage,all four main stages have fits for complete decomposition
+warn,l2_warm_passes,--l2-warm-passes=2; use >=4 for stronger L2 residency before l2 phases
+ok,control_dram_samples,all phases have >=3 samples
+ok,control_dram_pstate,active phases P-state P0
+ok,control_dram_temperature,max active temperature 51.8 C
+ok,control_l2_samples,all phases have >=3 samples
+ok,control_l2_pstate,active phases P-state P0
+ok,control_l2_temperature,max active temperature 48.4 C
+ok,dram_samples,all phases have >=3 samples
+ok,dram_pstate,active phases P-state P0
+ok,dram_temperature,max active temperature 47.9 C
+ok,l2_samples,all phases have >=3 samples
+ok,l2_pstate,active phases P-state P0
+ok,l2_temperature,max active temperature 47.9 C
+warn,control_l2_fit_points,only 2 fit point(s); two-point linear fits have trivially perfect R2
+ok,control_l2_fit,"R2=1.000000, max residual=0.000 W"
+warn,l2_fit_points,only 2 fit point(s); two-point linear fits have trivially perfect R2
+ok,l2_fit,"R2=1.000000, max residual=0.000 W"
+warn,control_dram_fit_points,only 2 fit point(s); two-point linear fits have trivially perfect R2
+ok,control_dram_fit,"R2=1.000000, max residual=0.000 W"
+warn,dram_fit_points,only 2 fit point(s); two-point linear fits have trivially perfect R2
+ok,dram_fit,"R2=1.000000, max residual=0.000 W"
+ok,dram_buffer_size,DRAM buffer is >= 64x L2
+ok,l2_buffer_size,L2 buffer is <=50% of L2

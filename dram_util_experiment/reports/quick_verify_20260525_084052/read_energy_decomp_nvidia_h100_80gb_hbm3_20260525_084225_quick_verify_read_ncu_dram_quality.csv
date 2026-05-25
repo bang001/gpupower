@@ -1,0 +1,12 @@
+level,check,detail
+warn,repeat_coverage,only 1 fit repeats after warmup; median/IQR stability may be weak
+warn,idle_iqr,idle power IQR 7.106 W exceeds threshold 2.000 W
+warn,idle_filter,only 0 idle samples below 500 MHz; baseline fell back to all samples
+warn,gpu_setup,no clock/persistence/power-limit setup requested; compare clocks in quality CSV
+warn,partial_decomposition,"--only-stage=dram is a validation/NCU mode; complete decomposition requires control_l2,l2,control_dram,dram"
+warn,l2_warm_passes,--l2-warm-passes=1; use >=4 for stronger L2 residency before l2 phases
+ok,dram_samples,all phases have >=3 samples
+ok,dram_pstate,active phases P-state P0
+ok,dram_temperature,max active temperature 44.5 C
+warn,dram_buffer_size,DRAM buffer is less than 64x L2; L2 miss assumption is weaker
+ok,l2_buffer_size,L2 buffer is <=50% of L2

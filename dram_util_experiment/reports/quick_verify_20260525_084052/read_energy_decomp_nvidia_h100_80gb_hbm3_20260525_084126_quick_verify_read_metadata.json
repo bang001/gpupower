@@ -1,0 +1,192 @@
+{
+  "args": {
+    "blocks": null,
+    "blocks_per_sm": 32,
+    "cal_passes": 4,
+    "cal_repeats": 3,
+    "clock_warn_mhz": 75.0,
+    "device": 0,
+    "dram_buf_bytes": 4294967296,
+    "dram_cache_op": "cs",
+    "fit_aggregate": "median",
+    "fit_min_target": 50,
+    "flat_output": true,
+    "gap_seconds": 0.2,
+    "hbm_pjbit": null,
+    "idle_filter_min_samples": 5,
+    "idle_filter_sm_clock_below": 500,
+    "idle_iqr_warn_w": 2.0,
+    "idle_seconds": 2.0,
+    "idle_settle_seconds": 0.2,
+    "include_compute": false,
+    "l2_buf_bytes": 13107200,
+    "l2_cache_op": "cg",
+    "l2_fraction": 0.25,
+    "l2_size_bytes": 52428800,
+    "l2_warm_passes": 2,
+    "lock_gpu_clocks": "",
+    "lock_memory_clocks": "",
+    "lock_memory_clocks_deferred": "",
+    "min_dram_l2_multiple": 64,
+    "only_stage": "",
+    "out_dir": "reports/quick_verify_20260525_084052",
+    "phase_seconds": 1.0,
+    "poll_hz": 100,
+    "power_limit_scope": null,
+    "power_limit_w": null,
+    "r2_warn": 0.98,
+    "repeats": 2,
+    "reset_clocks_on_exit": false,
+    "reset_gpu_clocks_before": false,
+    "reset_memory_clocks_before": false,
+    "seed": 1234,
+    "set_persistence": false,
+    "shuffle": false,
+    "tag": "quick_verify_read",
+    "targets": [
+      50,
+      100
+    ],
+    "temperature_warn_c": 80.0,
+    "threads": 256,
+    "warmup_repeats": 0,
+    "window_ms": 500.0
+  },
+  "calibration": {
+    "control_dram": {
+      "buffer_bytes": 4294967296,
+      "ms_per_pass": 0.12163999676704407,
+      "n_uint4": 268435456,
+      "name": "control_dram_read",
+      "nominal_peak_bandwidth_gbs": 35308.840925287135,
+      "passes_per_second": 8220.980159306697
+    },
+    "control_l2": {
+      "buffer_bytes": 13107200,
+      "ms_per_pass": 0.0030400000978261232,
+      "n_uint4": 819200,
+      "name": "control_l2_read",
+      "nominal_peak_bandwidth_gbs": 4311.578808623342,
+      "passes_per_second": 328947.35783564317
+    },
+    "dram": {
+      "buffer_bytes": 4294967296,
+      "ms_per_pass": 1.3791919946670532,
+      "n_uint4": 268435456,
+      "name": "dram_read_cs",
+      "nominal_peak_bandwidth_gbs": 3114.1184930070854,
+      "passes_per_second": 725.0622131412582
+    },
+    "l2": {
+      "buffer_bytes": 13107200,
+      "ms_per_pass": 0.004031999967992306,
+      "n_uint4": 819200,
+      "name": "l2_read_cg",
+      "nominal_peak_bandwidth_gbs": 3250.793676599804,
+      "passes_per_second": 248015.87498472625
+    }
+  },
+  "device": {
+    "blocks": 4224,
+    "l2_bytes": 52428800,
+    "name": "NVIDIA H100 80GB HBM3",
+    "sink_uint4": 33792,
+    "sm_count": 132,
+    "threads": 256
+  },
+  "env_actions": [],
+  "idle": {
+    "all_samples": 199,
+    "baseline_source": "all_idle_samples",
+    "filtered_samples": 0,
+    "power_w_iqr": 0.15900000000000603,
+    "power_w_mean": 115.36264321608039,
+    "power_w_median": 116.051,
+    "power_w_std": 5.1493203696886205,
+    "pstates_seen": "P0",
+    "samples": 199,
+    "sm_clock_filter_mhz": 500,
+    "sm_clock_mhz_max": 1980,
+    "sm_clock_mhz_min": 1980
+  },
+  "method_notes": [
+    "Recommended values come from avg_power vs bandwidth slopes over active phases, not P8 idle subtraction.",
+    "Idle baseline can prefer low-SM-clock samples for diagnostic dynamic_power columns; fits do not depend on idle subtraction.",
+    "--only-stage is intended for Nsight Compute validation and produces partial stage-slope output, not a complete decomposition.",
+    "Temperature and clock quality warnings should be checked before comparing A100/H100 slopes.",
+    "control/l2/dram use the same grid, loop shape, and accumulator sink convention.",
+    "l2 phases are warmed immediately before measurement to improve L2 residency.",
+    "dram phases rely on DRAM buffer much larger than L2 and a streaming cache-op hint to make L1/L2 hits unlikely.",
+    "ld.global.ca caches at all available cache levels and can include L1/TEX effects; validate with Nsight Compute l1tex/lts counters.",
+    "ld.global.cs is an evict-first/streaming hint, not an architectural guarantee of L2 bypass.",
+    "Visualization plots: _fit.png is the primary slope-readout plot; _diagnostics.png exposes clock/thermal drift; _method.png explains component formulas.",
+    "compute stage, when enabled, is a no-global-memory SM/FMA dynamic reference and is not subtracted from HBM.",
+    "Use Nsight Compute physical dram/lts bytes to validate physical denominators and cache residency.",
+    "--hbm-pjbit is an external HBM prior; NVML does not separately measure HBM stack energy."
+  ],
+  "nvml_after": {
+    "compute_mode": 0,
+    "driver_version": "555.58.02",
+    "ecc_mode": [
+      1,
+      1
+    ],
+    "enforced_power_limit_w": 700.0,
+    "gpu_util_pct": 100,
+    "mem_clock_mhz": 2619,
+    "mem_util_pct": 100,
+    "memory_total_bytes": 85520809984,
+    "memory_used_bytes": 5329518592,
+    "mig_mode": [
+      0,
+      0
+    ],
+    "name": "NVIDIA H100 80GB HBM3",
+    "persistence_mode": 1,
+    "power_default_limit_w": 700.0,
+    "power_limit_w": 700.0,
+    "power_usage_w": 363.073,
+    "pstate": 0,
+    "sm_clock_mhz": 1980,
+    "temperature_gpu_c": 42,
+    "throttle_reasons_hex": "0x0",
+    "uuid": "GPU-6022fc81-d1a8-699e-2a02-ab05358477e6",
+    "vbios_version": "96.00.DA.00.17"
+  },
+  "nvml_before": {
+    "compute_mode": 0,
+    "driver_version": "555.58.02",
+    "ecc_mode": [
+      1,
+      1
+    ],
+    "enforced_power_limit_w": 700.0,
+    "gpu_util_pct": 0,
+    "mem_clock_mhz": 2619,
+    "mem_util_pct": 0,
+    "memory_total_bytes": 85520809984,
+    "memory_used_bytes": 5329518592,
+    "mig_mode": [
+      0,
+      0
+    ],
+    "name": "NVIDIA H100 80GB HBM3",
+    "persistence_mode": 1,
+    "power_default_limit_w": 700.0,
+    "power_limit_w": 700.0,
+    "power_usage_w": 89.79,
+    "pstate": 0,
+    "sm_clock_mhz": 1980,
+    "temperature_gpu_c": 40,
+    "throttle_reasons_hex": "0x0",
+    "uuid": "GPU-6022fc81-d1a8-699e-2a02-ab05358477e6",
+    "vbios_version": "96.00.DA.00.17"
+  },
+  "plots": {
+    "decomposition": "reports/quick_verify_20260525_084052/read_energy_decomp_nvidia_h100_80gb_hbm3_20260525_084126_quick_verify_read_decomposition.png",
+    "diagnostics": "reports/quick_verify_20260525_084052/read_energy_decomp_nvidia_h100_80gb_hbm3_20260525_084126_quick_verify_read_diagnostics.png",
+    "fit_regression": "reports/quick_verify_20260525_084052/read_energy_decomp_nvidia_h100_80gb_hbm3_20260525_084126_quick_verify_read_fit.png",
+    "method_diagram": "reports/quick_verify_20260525_084052/read_energy_decomp_nvidia_h100_80gb_hbm3_20260525_084126_quick_verify_read_method.png",
+    "power_trace": "reports/quick_verify_20260525_084052/read_energy_decomp_nvidia_h100_80gb_hbm3_20260525_084126_quick_verify_read_power.png"
+  }
+}

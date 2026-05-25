@@ -1,0 +1,8 @@
+component,pj_per_bit,note
+control_l2_loop,1.0906885084706588,Matched index/pattern/accumulator cost per L2-buffer nominal bit; not a physical memory path.
+l2_write_total,8.079302671935736,"Board-level slope for L2-sized st.global.wb stores, including SM/RF/LSU/L2 and active clocks."
+control_dram_loop,1.897781782329295,Matched index/pattern/accumulator cost per DRAM-buffer nominal bit; not a physical memory path.
+dram_write_total,10.781939167779733,Board-level slope for DRAM-streaming st.global.cs stores over a buffer much larger than L2.
+l2_over_control,6.988614163465077,Lower-bound SM/RF/LSU/L2 store-path increment above the L2-sized control loop.
+dram_over_control,8.884157385450438,Whole DRAM-stream global-store path above the DRAM-sized control loop; still board-level.
+dram_global_over_l2,1.8955432219853607,Additional off-chip/writeback increment after removing the L2 store-path estimate: MC + GPU PHY + HBM PHY/core.
