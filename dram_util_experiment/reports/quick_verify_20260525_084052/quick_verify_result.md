@@ -49,6 +49,7 @@ NCU 조건:
 | Read/write 산출물 생성 | PASS | summary, aggregate, fits, decomposition, quality, trace, metadata, png 생성됨 |
 | NCU wrapper 실행 | PARTIAL | NCU는 프로세스에 붙었지만 counter 권한에서 실패함 |
 | NCU counter 수집 | FAIL | `ERR_NVGPUCTRPERM` 때문에 kernel profiling 불가 |
+| sudo NCU 재시도 | FAIL | root로도 host NVIDIA profiling 제한 때문에 counter 접근 실패 |
 
 ## Read 결과
 
@@ -129,10 +130,12 @@ Decomposition:
 Read NCU log:
 
 - `quick_verify_read_ncu_dram.ncu.log`
+- `quick_verify_read_ncu_sudo_dram.ncu.log`
 
 Write NCU log:
 
 - `quick_verify_write_ncu_dram.ncu.log`
+- `quick_verify_write_ncu_sudo_dram.ncu.log`
 
 결과:
 
@@ -141,8 +144,17 @@ Write NCU log:
 - 에러: `ERR_NVGPUCTRPERM`
 - 따라서 `.ncu-rep` 파일은 생성되지 않았고, kernel counter는 수집되지 않았다.
 
-판정: NCU wrapper 경로는 실행되지만 현재 시스템 권한으로는 NCU counter profiling이 완료되지 않는다. 관리자 권한 또는 `NVreg_RestrictProfilingToAdminUsers=0` 설정이 필요하다.
+sudo 재시도 결과:
+
+- 현재 세션 user는 `root`.
+- `sudo -n true`는 성공했다.
+- `sudo env PY=/venv/main/bin/python3.10 ...` 형태로 read/write NCU를 다시 실행했다.
+- read/write 모두 동일하게 `ERR_NVGPUCTRPERM`으로 실패했다.
+- `/proc/driver/nvidia/params` 확인 결과 `RmProfilingAdminOnly: 1`.
+- 컨테이너 root의 capability에는 `cap_perfmon`, `cap_sys_admin`이 없다.
+
+판정: NCU wrapper 경로는 실행되지만 현재 컨테이너의 `sudo`만으로는 NCU counter profiling이 완료되지 않는다. host NVIDIA driver 설정에서 profiling 제한을 풀거나, 필요한 capability가 포함된 privileged 환경이 필요하다.
 
 ## 최종 결론
 
-원한대로 read/write energy decomposition 실험이 실행되는지는 확인됐다. read와 write 모두 4-stage decomposition, cache-op 전달, 결과 파일 생성이 정상 동작했다. 다만 NCU counter profiling은 권한 문제로 완료되지 않았고, 이번 값은 짧은 검증 run이라 최종 pJ/bit 수치로 사용하면 안 된다.
+원한대로 read/write energy decomposition 실험이 실행되는지는 확인됐다. read와 write 모두 4-stage decomposition, cache-op 전달, 결과 파일 생성이 정상 동작했다. 다만 NCU counter profiling은 sudo 재시도 후에도 host 권한 제한 문제로 완료되지 않았고, 이번 값은 짧은 검증 run이라 최종 pJ/bit 수치로 사용하면 안 된다.

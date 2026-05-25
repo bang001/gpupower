@@ -1,0 +1,2 @@
+component,pj_per_bit,note
+decomposition_incomplete,nan,"Complete lower-bound decomposition requires control_l2,l2,control_dram,dram fits; missing control_l2,l2,control_dram,dram. This is expected for --only-stage / NCU validation runs."

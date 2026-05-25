@@ -1,0 +1,2 @@
+stage,target_pct,n,repeat_min_used,repeat_max_used,bandwidth_gbs_median,bandwidth_gbs_iqr,avg_power_w_median,avg_power_w_iqr,avg_power_w_mean,avg_power_w_std
+dram,100,1,0,0,3244.7850940222665,0.0,108.48185037138039,0.0,108.48185037138039,0.0
