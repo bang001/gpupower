@@ -17,6 +17,7 @@ Nsight profiling 도구는 13장 부록에 요약한다.
 8. H100에서는 `NVML_FI_DEV_POWER_INSTANT`/`AVERAGE` field API를 같이 기록해서 cross-validation할 수 있다.
 9. H100 write 해석은 `--write-patterns zero const address random toggle` sweep으로 data pattern/compression 영향을 분리한다.
 10. A100/H100처럼 세대 간 비교가 이상하면 `hierarchy_pjbit_cupy.py`로 control/L2/DRAM-stream lower-bound 실험을 추가 수행한다.
+11. HBM/DRAM 순수 에너지 분리를 원한다면 `dram_energy_decomp_cupy.py` 기반의 Energy Decomposition 실험을 수행한다. (v6 시각화 지원)
 
 ## 1. 파일 구성
 
@@ -180,7 +181,7 @@ Native CUDA 버전은 직접 arch를 맞춰야 한다.
 CUDA toolkit이나 `nvcc`는 필요 없다. 드라이버와 CUDA runtime/NVRTC wheel이 있으면 된다.
 
 ```bash
-cd util/dram_util_experiment
+cd dram_util_experiment
 
 python3 -m venv .venv-pjbit
 source .venv-pjbit/bin/activate
@@ -271,28 +272,28 @@ write pattern 의미:
 RTX 3090:
 
 ```bash
-cd util/dram_util_experiment
+cd dram_util_experiment
 ./run_pjbit_repeats.sh --profile rtx3090
 ```
 
 A100 8 GiB:
 
 ```bash
-cd util/dram_util_experiment
+cd dram_util_experiment
 ./run_pjbit_repeats.sh --profile a100-8gib --device 0
 ```
 
 H100 8 GiB:
 
 ```bash
-cd util/dram_util_experiment
+cd dram_util_experiment
 ./run_pjbit_repeats.sh --profile h100-8gib --device 0
 ```
 
 A100 8 GiB + NCU validation:
 
 ```bash
-cd util/dram_util_experiment
+cd dram_util_experiment
 ./run_pjbit_repeats.sh \
   --profile a100-8gib \
   --device 0 \
@@ -304,7 +305,7 @@ cd util/dram_util_experiment
 NCU 권한 때문에 `sudo`가 필요하고 venv/conda에 패키지를 설치했다면 `PY`를 명시한다. `sudo`는 venv의 `PATH`를 지울 수 있다.
 
 ```bash
-cd util/dram_util_experiment
+cd dram_util_experiment
 sudo env PY="$VIRTUAL_ENV/bin/python" ./run_pjbit_repeats.sh \
   --profile a100-8gib \
   --device 0 \
@@ -316,7 +317,7 @@ sudo env PY="$VIRTUAL_ENV/bin/python" ./run_pjbit_repeats.sh \
 이미 power 반복 실험을 끝냈고 NCU counter만 확인할 때:
 
 ```bash
-cd util/dram_util_experiment
+cd dram_util_experiment
 ./run_pjbit_repeats.sh \
   --profile a100-8gib \
   --device 0 \
@@ -327,7 +328,7 @@ cd util/dram_util_experiment
 자동 GPU profile 선택:
 
 ```bash
-cd util/dram_util_experiment
+cd dram_util_experiment
 ./run_pjbit_repeats.sh --profile auto --device 0
 ```
 
@@ -358,7 +359,7 @@ reports/nvidia_geforce_rtx_3090_202605141739/*<tag>_rep3*.png
 ### 6.3 빠른 smoke test
 
 ```bash
-cd util/dram_util_experiment
+cd dram_util_experiment
 
 ./run_pjbit_cupy.sh \
   --modes read write \
@@ -738,147 +739,68 @@ for value in values:
 2. `100%-0%`: 약 `44-45 pJ/bit`, 상한성 sanity check.
 3. 현재 값은 DRAM rail-only가 아니라 NVML board-level marginal dynamic pJ/bit.
 
-## 12. Memory Hierarchy Lower-Bound 실험
+## 12. Energy Decomposition 실험 (dram_energy_decomp_cupy.py)
 
-`hierarchy_pjbit_cupy.py`는 A100/H100처럼 세대 간 pJ/bit 결과가 직관과 다를 때 원인을 좁히기 위한 새 실험이다. 논문식 접근에 맞춰 DRAM stream 한 점만 보지 않고, 같은 loop/address/pattern 구조를 다음 네 단계로 분리한다.
+`dram_energy_decomp_cupy.py`는 DRAM 순수 에너지(HBM PHY to HBM Core)와 GPU-side 외적 에너지(SM, RF, LSU, L2, MC, GPU PHY)를 분리하기 위한 고도화된 실험 도구이다. 기존 `hierarchy_pjbit_cupy.py`를 계승하며, v6 업데이트를 통해 논리 다이어그램, 선형 회귀 시각화, 열/클럭 진단 도구가 추가되었다.
 
-```text
-control_l2
-  L2 크기 working set에 해당하는 loop/address/pattern 생성만 수행
-  global memory access 없음
+### 12.1 실험 원리 (Methodology)
 
-l2
-  L2보다 작은 buffer를 반복 접근
-  read는 L2-resident hit를 의도
-  write는 L2/store path resident case로 보고 NCU writeback 확인 필요
-
-control_dram
-  DRAM stream 크기 working set에 해당하는 loop/address/pattern 생성만 수행
-  global memory access 없음
-
-dram
-  L2보다 훨씬 큰 buffer를 streaming 접근
-```
-
-이 실험의 목적은 다음 값을 분리해서 보는 것이다.
+실험은 4가지 주요 스테이지(Stage)의 Slope(pJ/bit)를 추출하여 상호 차감하는 방식으로 진행된다:
 
 ```text
-L2 path lower bound
-  l2 - control_l2
-
-DRAM stream lower bound
-  dram - control_dram
-
-DRAM over L2 rough estimate
-  (dram - control_dram) - (l2 - control_l2)
+1. control_l2: L2-resident 접근을 위한 루프/주소 계산 오버헤드 (메모리 접근 없음)
+2. l2: L2-resident 캐시 읽기 (ld.global.cg 등 활용)
+3. control_dram: DRAM-streaming 접근을 위한 루프/주소 계산 오버헤드 (메모리 접근 없음)
+4. dram: DRAM-streaming 메모리 읽기 (ld.global.cs 등 활용)
 ```
 
-주의: 이 값도 DRAM rail-only pJ/bit은 아니다. NVML GPU/board dynamic power 기반 lower-bound 성격이며, 최종 해석은 NCU의 physical DRAM/L2 bytes와 함께 확인해야 한다. 특히 `write:random`은 xorshift pattern generation ALU가 포함되므로 compute-mixed case로 분리해서 본다.
+이 스테이지들의 에너지(pJ/bit) 측정값을 기반으로 다음 요소들을 도출한다:
 
-기본 실행:
+- **L2 Path (L2 over control)**: `l2` - `control_l2`
+- **DRAM Path (DRAM over control)**: `dram` - `control_dram`
+- **Off-chip Increment (DRAM over L2)**: `DRAM Path` - `L2 Path`
+
+최종적으로, NVML 기반의 `Off-chip Increment` 측정값은 (MC + GPU PHY + HBM PHY + HBM Core)를 모두 포함하므로, 외부 HBM Prior(`--hbm-pjbit`)를 주입하여 GPU-side Residual을 추정한다:
+- **GPU-side Residual**: `Off-chip Increment` - `--hbm-pjbit`
+
+### 12.2 기본 실행
 
 ```bash
-cd util/dram_util_experiment
-./run_hierarchy_pjbit.sh \
-  --device 0 \
-  --tag a100_hierarchy \
-  --dram-buf-bytes 8589934592 \
-  --phase-seconds 12
+cd dram_util_experiment
+./run_energy_decomp.sh   --device 0   --tag my_decomp_run   --dram-buf-bytes 8589934592
 ```
 
-H100도 같은 조건으로 실행한다.
+위 명령어는 자동으로 NVML Power Trace를 측정하고, 5가지 결과 이미지를 생성한다.
+
+### 12.3 v6 시각화 산출물 (Plots)
+
+v6 패치부터는 코드 내 산출물 생성 기능이 대폭 강화되었다.
+
+1. **`*_method.png`**:
+   - 실험의 논리 다이어그램(Methodology Diagram)을 보여준다. 어떤 수식으로 에너지가 차감되고 최종 GPU-side Residual이 도출되는지 한눈에 파악할 수 있다.
+2. **`*_fit.png`**:
+   - Bandwidth vs Power 선형 회귀(Linear Regression) 결과를 시각화한다.
+   - 각 측정 Target(50, 75, 100%)의 중간값(Median)과 오차 범위(IQR), 그리고 모든 원시 데이터(Raw Repeats)를 플롯에 겹쳐 그려 Fit의 신뢰성을 증명한다. 하단의 잔차(Residual) 플롯도 제공된다.
+3. **`*_diagnostics.png`**:
+   - 시간(Repeat) 흐름에 따른 Power, Bandwidth, SM Clock, GPU 온도 변화를 보여준다.
+   - 장시간 실행 시 발생하는 Thermal throttling 이나 Clock drift가 측정값에 미친 영향을 쉽게 식별할 수 있다.
+4. **`*_power.png`**: NVML Power 타임라인과 각 Phase의 실행 구간 오버레이.
+5. **`*_decomposition.png`**: 각 스테이지의 pJ/bit와 최종 계산된 Component (L2 Path, DRAM Path 등)의 막대 그래프 요약.
+
+### 12.4 Nsight Compute (NCU) 검증
+
+이 방법론은 `l2` 스테이지가 100% L2 Hit를, `dram` 스테이지가 거의 100% L2 Miss를 달성한다는 물리적 전제 하에 작동한다. NVML Power Run을 마친 후, 반드시 NCU를 통해 실제 물리적 바이트(Physical Bytes)를 검증해야 한다.
 
 ```bash
-./run_hierarchy_pjbit.sh \
-  --device 0 \
-  --tag h100_hierarchy \
-  --dram-buf-bytes 8589934592 \
-  --phase-seconds 12
+./run_energy_decomp_ncu.sh   --device 0   --tag my_decomp_ncu   --dram-buf-bytes 8589934592
 ```
 
-출력:
+NCU에서 우선 확인할 항목:
+- `dram__bytes_read.sum` 및 `dram__bytes_write.sum`
+- `lts__t_sectors_srcunit_tex_op_read_lookup_hit.sum` (L2 Hit 수 확인)
+- `smsp__inst_executed_pipe_lsu.sum`
 
-```text
-reports/<gpu_name>_<YYYYMMDDHHMM>/hierarchy_pjbit_*_summary.csv
-reports/<gpu_name>_<YYYYMMDDHHMM>/hierarchy_pjbit_*_analysis.csv
-reports/<gpu_name>_<YYYYMMDDHHMM>/hierarchy_pjbit_*_trace.csv
-reports/<gpu_name>_<YYYYMMDDHHMM>/hierarchy_pjbit_*_metadata.json
-reports/<gpu_name>_<YYYYMMDDHHMM>/hierarchy_pjbit_*.png
-reports/<gpu_name>_<YYYYMMDDHHMM>/hierarchy_pjbit_*_power_trace.png
-reports/<gpu_name>_<YYYYMMDDHHMM>/hierarchy_pjbit_*_decomposition.png
-reports/<gpu_name>_<YYYYMMDDHHMM>/hierarchy_pjbit_*_bandwidth.png
-```
-
-이미지 해석:
-
-1. 기본 `*.png`: phase별 dynamic power, raw pJ/nominal-bit, nominal throughput, control-subtracted estimate를 한 장에 요약한다.
-2. `*_power_trace.png`: NVML power timeline과 phase span을 함께 보여준다. baseline 분리, phase 안정화, gap 구간 이상 여부를 확인한다.
-3. `*_decomposition.png`: `L2-control`, `DRAM-control`, `DRAM-over-L2`를 비교하는 핵심 이미지다. A100/H100/RTX 3090 세대 비교는 이 그림을 우선 본다.
-4. `*_bandwidth.png`: pJ/bit denominator로 들어간 nominal bandwidth를 phase별로 표시한다. NCU physical bytes와 denominator가 어긋나는지 확인할 때 같이 본다.
-
-해석 순서:
-
-1. `summary.csv`에서 `control_*`의 pJ/nominal-bit가 너무 크면 loop/address/pattern overhead가 결과를 지배하는 것이다.
-2. `analysis.csv`의 `l2_minus_control_pj_per_nominal_bit`와 `dram_minus_control_pj_per_nominal_bit`를 비교한다.
-3. A100/H100 비교는 `dram_pj_per_nominal_bit`보다 `dram_minus_control_pj_per_nominal_bit`를 우선한다.
-4. `write:random`은 최종 DRAM 비교에서 제외하거나 별도 compute-mixed 결과로 보고한다.
-5. NCU로 `dram__bytes_*`, `lts__t_sectors_*`, `smsp__inst_executed_pipe_*`를 확인해 physical traffic과 compute 혼입을 검증한다.
-6. `l2_minus_control_pj_per_nominal_bit`가 작게 음수이면 L2 energy가 음수라는 뜻이 아니라 matched-control이 active L2 phase보다 더 높은 board dynamic power를 보인 over-subtraction이다. 이 경우 lower-bound 해석에서는 `l2_minus_control_clamped_pj_per_nominal_bit=0`으로 보고 `dram_over_l2_clamped_pj_per_nominal_bit`를 함께 사용한다.
-
-diagnostic 옵션:
-
-```bash
-# random 포함. compute-mixed sensitivity 용도
-./run_hierarchy_pjbit.sh \
-  --device 0 \
-  --tag h100_hierarchy_random \
-  --dram-buf-bytes 8589934592 \
-  --write-patterns zero const address toggle random
-
-# block/occupancy sensitivity
-./run_hierarchy_pjbit.sh \
-  --device 0 \
-  --tag h100_hierarchy_blocks64 \
-  --dram-buf-bytes 8589934592 \
-  --blocks 64
-
-# NCU에서 특정 workload만 짧게 profile할 때
-./run_hierarchy_pjbit.sh \
-  --device 0 \
-  --tag h100_hierarchy_ncu_probe \
-  --dram-buf-bytes 8589934592 \
-  --only-workload dram_read \
-  --phase-seconds 1 \
-  --idle-seconds 0.2
-```
-
-NCU counter validation까지 같이 할 때는 별도 wrapper를 쓴다. 이 wrapper는 대표 workload를 하나씩 짧게 실행하고 `.ncu-rep`와 `.ncu.log`를 저장한다.
-
-```bash
-sudo -v
-sudo env PY="$VIRTUAL_ENV/bin/python" ./run_hierarchy_ncu.sh \
-  --device 0 \
-  --tag h100_hierarchy_ncu \
-  --dram-buf-bytes 8589934592 \
-  --workloads "l2_read dram_read l2_write_zero dram_write_zero"
-```
-
-NCU에서 우선 확인할 항목은 `dram__bytes_*`, `lts__t_sectors_*`, `l1tex__t_sectors_*`, `smsp__inst_executed_pipe_lsu.sum`이다. 이 값으로 `l2_*`가 실제로 DRAM traffic을 거의 만들지 않았는지, `dram_*`의 denominator가 nominal bytes와 크게 다르지 않은지 확인한다. `ERR_NVGPUCTRPERM`이 나오면 profiler 권한 문제이며, 측정 코드 실패가 아니다.
-
-대표 workload 이름:
-
-```text
-control_l2_read
-l2_read
-control_dram_read
-dram_read
-control_l2_write_zero
-l2_write_zero
-control_dram_write_zero
-dram_write_zero
-```
-
-write pattern은 `zero`, `const`, `address`, `toggle`, `random`을 지원한다.
+NCU 검증 시에는 전체 분해가 필요 없으므로 특정 스테이지만 검증하고 싶다면 `--only-stage`를 사용한다 (예: `--only-stage dram`). (단, `--only-stage` 사용 시 Decomposition 플롯 값은 NaN 처리됨)
 
 ## 13. Legacy read-utilization 및 Nsight 부록
 
@@ -887,7 +809,7 @@ write pattern은 `zero`, `const`, `address`, `toggle`, `random`을 지원한다.
 기존 `dram_util_cupy.py`는 DRAM read utilization을 25/50/75/100% 계단으로 만드는 도구다. pJ/bit 계산은 하지 않는다.
 
 ```bash
-cd util/dram_util_experiment
+cd dram_util_experiment
 ./run_cupy.sh
 
 python3 dram_util_cupy.py --targets 25 50 75 100 --phase-seconds 10
