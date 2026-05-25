@@ -1,0 +1,29 @@
+level,check,detail
+warn,repeat_coverage,only 4 fit repeats after warmup; median/IQR stability may be weak
+ok,idle_iqr,idle power IQR 0.392 W
+warn,idle_filter,only 0 idle samples below 500 MHz; baseline fell back to all samples
+warn,gpu_setup,no clock/persistence/power-limit setup requested; compare clocks in quality CSV
+ok,decomposition_coverage,all four main stages have fits for complete decomposition
+ok,l2_warm_passes,--l2-warm-passes=4
+ok,control_dram_samples,all phases have >=3 samples
+ok,control_dram_pstate,active phases P-state P0
+ok,control_dram_temperature,max active temperature 56.0 C
+ok,control_l2_samples,all phases have >=3 samples
+ok,control_l2_pstate,active phases P-state P0
+ok,control_l2_temperature,max active temperature 53.5 C
+ok,dram_samples,all phases have >=3 samples
+ok,dram_pstate,active phases P-state P0
+ok,dram_temperature,max active temperature 49.9 C
+ok,l2_samples,all phases have >=3 samples
+ok,l2_pstate,active phases P-state P0
+ok,l2_temperature,max active temperature 52.8 C
+ok,control_l2_fit_points,fit used 3 point(s)
+ok,control_l2_fit,"R2=0.999999, max residual=0.144 W"
+ok,l2_fit_points,fit used 3 point(s)
+ok,l2_fit,"R2=0.999976, max residual=0.539 W"
+ok,control_dram_fit_points,fit used 3 point(s)
+ok,control_dram_fit,"R2=0.999930, max residual=0.785 W"
+ok,dram_fit_points,fit used 3 point(s)
+ok,dram_fit,"R2=0.999865, max residual=0.937 W"
+ok,dram_buffer_size,DRAM buffer is >= 64x L2
+ok,l2_buffer_size,L2 buffer is <=50% of L2

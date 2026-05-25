@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <rect width="1600" height="900" fill="white"/>
+  <style>
+    text { font-family: 'Noto Sans CJK KR', 'Apple SD Gothic Neo', 'Malgun Gothic', 'NanumGothic', sans-serif; fill: #111; }
+    .title { font-size: 44px; font-weight: 800; }
+    .sub { font-size: 24px; fill: #444; }
+    .label { font-size: 26px; font-weight: 800; fill: white; }
+    .boxtext { font-size: 26px; font-weight: 800; text-anchor: middle; dominant-baseline: middle; }
+    .small { font-size: 22px; fill: #333; }
+    .tiny { font-size: 19px; fill: #333; }
+    .eq { font-size: 32px; font-weight: 800; text-anchor: middle; dominant-baseline: middle; }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L10,6 L2,10 z" fill="#333"/>
+    </marker>
+  </defs>
+
+  <text x="70" y="75" class="title">SM 비용은 직접 측정하지 않고, control로 빼서 처리한다</text>
+  <text x="72" y="118" class="sub">같은 blocks / threads / loop shape를 유지한 뒤 global read/write가 추가한 비용만 차이로 본다</text>
+
+  <rect x="70" y="675" width="220" height="72" rx="10" fill="#777"/>
+  <text x="180" y="720" class="label" text-anchor="middle">1) Control</text>
+  <rect x="325" y="655" width="300" height="108" fill="#d9d9d9" stroke="#222" stroke-width="3"/>
+  <text x="475" y="695" class="boxtext">control_l2</text>
+  <text x="475" y="730" class="boxtext">control_dram</text>
+  <rect x="665" y="655" width="335" height="108" fill="#eee" stroke="#222" stroke-width="3"/>
+  <text x="832" y="685" class="boxtext">SM 공통 비용</text>
+  <text x="832" y="720" class="boxtext" style="font-size:22px;">loop + index + register</text>
+  <text x="1035" y="710" class="small" style="font-weight:800;">global read/write 없음</text>
+
+  <rect x="70" y="490" width="220" height="72" rx="10" fill="#2f6fc2"/>
+  <text x="180" y="535" class="label" text-anchor="middle">2) Memory</text>
+  <rect x="325" y="465" width="305" height="117" fill="#d9d9d9" stroke="#222" stroke-width="3"/>
+  <text x="477" y="520" class="boxtext">같은 SM 공통 비용</text>
+  <rect x="630" y="465" width="335" height="117" fill="#2f6fc2" stroke="#222" stroke-width="3"/>
+  <text x="797" y="505" class="boxtext" fill="white">L2 read/write</text>
+  <text x="797" y="540" class="boxtext" fill="white">추가 비용</text>
+  <rect x="965" y="465" width="340" height="117" fill="#d94b45" stroke="#222" stroke-width="3"/>
+  <text x="1135" y="505" class="boxtext" fill="white">DRAM read/write</text>
+  <text x="1135" y="540" class="boxtext" fill="white">추가 비용</text>
+  <text x="1330" y="512" class="small" style="font-weight:800;">같은 SM 작업</text>
+  <text x="1330" y="542" class="small" style="font-weight:800;">+ global memory 접근</text>
+
+  <rect x="70" y="305" width="220" height="72" rx="10" fill="#f28e2b"/>
+  <text x="180" y="350" class="label" text-anchor="middle">3) 빼기</text>
+  <rect x="325" y="282" width="300" height="100" fill="#2f6fc2" stroke="#222" stroke-width="3"/>
+  <text x="475" y="337" class="boxtext" fill="white">memory 단계</text>
+  <text x="655" y="342" style="font-size:48px; font-weight:900;" text-anchor="middle">-</text>
+  <rect x="700" y="282" width="300" height="100" fill="#d9d9d9" stroke="#222" stroke-width="3"/>
+  <text x="850" y="337" class="boxtext">control 단계</text>
+  <text x="1035" y="342" style="font-size:44px; font-weight:900;" text-anchor="middle">=</text>
+  <rect x="1085" y="282" width="425" height="100" fill="#3a9d5d" stroke="#222" stroke-width="3"/>
+  <text x="1298" y="337" class="boxtext" fill="white">memory path 증가분</text>
+  <line x1="1298" y1="465" x2="1298" y2="388" stroke="#3a9d5d" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="1298" y="245" style="font-size:26px; font-weight:800; fill:#3a9d5d;" text-anchor="middle">l2_over_control 또는 dram_over_control</text>
+
+  <rect x="75" y="112" width="1450" height="98" rx="12" fill="#fff5e8" stroke="#f28e2b" stroke-width="4"/>
+  <text x="800" y="165" class="eq">dram_global_over_l2 = dram_over_control - l2_over_control</text>
+  <text x="105" y="58" class="small" style="font-weight:800; fill:#f28e2b;">의미: L2 read/write path를 뺀 뒤 남는 L2 이후 off-chip 추가 비용</text>
+  <text x="835" y="58" class="tiny">MC + GPU PHY + HBM 쪽에 가까움. 단, 순수 HBM rail 측정은 아님.</text>
+
+  <rect x="1125" y="625" width="420" height="155" rx="10" fill="#f7f7f7" stroke="#555" stroke-width="3"/>
+  <text x="1150" y="665" class="small" style="font-weight:800;">주의할 점</text>
+  <text x="1150" y="705" class="tiny">• SM 순수 에너지 직접 추출 아님</text>
+  <text x="1150" y="735" class="tiny">• 공통 SM 비용을 matched control로 제거</text>
+  <text x="1150" y="765" class="tiny">• NCU counter로 L1/L2/DRAM traffic 검증</text>
+</svg>

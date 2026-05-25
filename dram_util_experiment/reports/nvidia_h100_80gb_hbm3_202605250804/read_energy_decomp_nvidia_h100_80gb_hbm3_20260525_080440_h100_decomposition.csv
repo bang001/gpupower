@@ -1,0 +1,8 @@
+component,pj_per_bit,note
+control_l2_loop,1.6782124436721808,Matched index/loop/accumulator cost per L2-buffer nominal bit; not a physical memory path.
+l2_read_total,4.224675478663476,"Board-level slope for L2-resident ld.global.cg loads, including SM/RF/LSU/L2 and active clocks."
+control_dram_loop,1.1010852594515257,Matched index/loop/accumulator cost per DRAM-buffer nominal bit; not a physical memory path.
+dram_read_total,11.63614342749419,Board-level slope for DRAM-streaming ld.global.cs loads over a buffer much larger than L2.
+l2_over_control,2.5464630349912953,Lower-bound SM/RF/LSU/L2 read-path increment above the L2-sized control loop.
+dram_over_control,10.535058168042664,Whole DRAM-stream global-read path above the DRAM-sized control loop; still board-level.
+dram_global_over_l2,7.988595133051368,Additional miss/off-chip increment after removing the L2 read-path estimate: MC + GPU PHY + HBM PHY/core.
