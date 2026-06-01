@@ -24,6 +24,7 @@
 | `scripts/run_strict_fp16_pipeline.sh` | build/env/sweep/analyze/NCU/strict quality gate를 한 번에 실행하는 A100/H100/RTX3090용 pipeline |
 | `scripts/compare_architectures.py` | A100/H100/RTX3090 등 여러 결과 디렉터리의 FP16 energy/throughput/thread-sweep 비교 시각화 |
 | `scripts/calibrate_matrix.py` | GPU별 timed duration을 맞추기 위해 matrix의 per-role `repeats`를 probe 또는 기존 `summary.csv` 기준으로 보정 |
+| `scripts/verify_architecture.py` | runtime preflight JSON의 compute capability/chip/common-HMMA metadata가 요청한 CUDA architecture와 맞는지 검증 |
 | `scripts/ncu_validate.sh` | Nsight Compute validation run 예시 |
 | `scripts/ncu_validate_no_l2_thread_sweep.sh` | thread sweep 후보의 no-L2/global-memory validation run 예시 |
 | `scripts/validate_ncu_reports.py` | Nsight Compute text report에서 HMMA/no-L2/local-spill/tensor-activity evidence를 자동 판정하고 memory counter를 normalized bytes로 요약 |
@@ -134,7 +135,7 @@ GPU_UUID=GPU-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
   --outdir results/strict_fp16_h100
 ```
 
-이 pipeline은 clean build log를 `build_ptxas.log`로 저장하고, 환경 수집 뒤 짧은 CUDA runtime preflight를 먼저 실행한다. 이 단계가 실패하면 driver/runtime mismatch 또는 오래된 binary 문제이므로 긴 sweep을 시작하지 않는다. 이후 `calibrate_matrix.py`로 `fp16_matmul_thread_sweep_fine.json`의 test/baseline timed duration이 기본 1초 이상이 되도록 per-role `repeats`를 GPU별로 보정하고, 보정된 `calibrated_matrix.json`으로 structural baseline sweep을 실행한다. 이 calibration은 기존 matrix의 repeats를 기본적으로 줄이지 않고, 필요한 경우만 늘린다. `--no-calibrate-matrix`를 주면 원본 matrix를 그대로 사용한다. Sweep 뒤에는 `summarize_kernel_resources.py`로 register/spill/resource occupancy evidence를 남긴다. 이후 `ncu_validate_no_l2_thread_sweep.sh`로 같은 thread 후보의 NCU 검증을 수행하고, `quality_gate.py --require-ncu`까지 실행한다. 최종 pJ/bit 후보는 `quality_gate_summary.json`의 `selected_targets`가 비어 있지 않을 때만 채택한다. NCU metric 이름이 장비/버전에서 다르면 `NCU_METRICS="..." ./scripts/run_strict_fp16_pipeline.sh ...`처럼 override한다.
+이 pipeline은 clean build log를 `build_ptxas.log`로 저장하고, 환경 수집 뒤 짧은 CUDA runtime preflight를 먼저 실행한다. 이 단계가 실패하면 driver/runtime mismatch 또는 오래된 binary 문제이므로 긴 sweep을 시작하지 않는다. Runtime preflight JSON은 이어서 `verify_architecture.py --strict-chip --require-common-hmma`로 검증한다. 즉 `--cuda-arch 80`은 A100/GA100, `86`은 RTX 3090/GA102, `90`은 H100/GH100 metadata와 맞아야 하며, 공통 HMMA path가 아니라 WGMMA를 쓴 경우 strict pipeline은 중단된다. 이후 `calibrate_matrix.py`로 `fp16_matmul_thread_sweep_fine.json`의 test/baseline timed duration이 기본 1초 이상이 되도록 per-role `repeats`를 GPU별로 보정하고, 보정된 `calibrated_matrix.json`으로 structural baseline sweep을 실행한다. 이 calibration은 기존 matrix의 repeats를 기본적으로 줄이지 않고, 필요한 경우만 늘린다. `--no-calibrate-matrix`를 주면 원본 matrix를 그대로 사용한다. Sweep 뒤에는 `summarize_kernel_resources.py`로 register/spill/resource occupancy evidence를 남긴다. 이후 `ncu_validate_no_l2_thread_sweep.sh`로 같은 thread 후보의 NCU 검증을 수행하고, `quality_gate.py --require-ncu`까지 실행한다. 최종 pJ/bit 후보는 `quality_gate_summary.json`의 `selected_targets`가 비어 있지 않을 때만 채택한다. NCU metric 이름이 장비/버전에서 다르면 `NCU_METRICS="..." ./scripts/run_strict_fp16_pipeline.sh ...`처럼 override한다.
 
 Calibration만 별도로 실행할 수도 있다. 새 장비에서는 binary probe를 사용하고, 이미 짧은 diagnostic run을 분석한 뒤에는 `summary.csv`를 이용해 반복 수를 재계산할 수 있다.
 
@@ -164,6 +165,21 @@ benchmark binary는 warmup 완료 후 CUDA event interval을 열기 직전에 en
 `nvidia-smi` power trace는 제거하지 않는다. H100처럼 `power.draw`가 averaging/smoothing된 값을 줄 수 있는 환경에서는 NVML total energy counter가 더 직접적인 최종 에너지 값이고, power trace는 clock/temperature/throttling 및 counter-vs-trace sanity check 용도다. runner는 지원되는 경우 `power.draw.average`와 `power.draw.instant`를 별도 컬럼으로 남긴다. 분석 결과에는 `energy_source`, `power_trace_energy_j`, `power_trace_query_modes`, `nvml_energy_delta_j`, `energy_counter_vs_trace_delta_j`, `energy_counter_vs_trace_ratio`가 함께 기록된다.
 
 `quality_gate.py`는 NVML counter 기반 energy와 power trace 적분값의 ratio도 확인한다. 기본값은 warning-only이며, H100/Ampere 이후 `power.draw`가 다른 시간 window의 평균값일 수 있기 때문이다. 이 sanity check까지 hard gate로 쓰려면 `--require-counter-trace-agreement`를 추가한다.
+
+#### A100/H100 power API policy
+
+`power.txt`에서 정리한 대로 최종 pJ/FLOP 또는 pJ/bit 산출용 API와 trace/debug용 API를 분리한다. 이 repo의 최종 energy path는 benchmark binary 내부의 `nvmlDeviceGetTotalEnergyConsumption()` delta이고, `nvidia-smi` trace는 fallback 또는 sanity check 용도다.
+
+| API / field | A100/GA100 | H100/GH100 | 시간 의미와 제약 | 이 repo의 사용 |
+|---|---|---|---|---|
+| `nvmlDeviceGetTotalEnergyConsumption()` | 사용 | 사용 | driver reload 이후 device-level total energy 누적값, mJ. sampling API가 아니라 시작/끝 counter delta로 Joule을 계산한다. MIG/shared GPU에서는 같은 물리 GPU의 다른 workload energy가 섞일 수 있다. | 최종 `power_energy_j`, `avg_power_w`의 1순위 source |
+| `nvidia-smi power.draw` | 사용 가능 | 사용 가능 | 장비/driver별 power telemetry 의미가 다를 수 있고, H100 계열에서는 smoothing/averaging window 영향이 커질 수 있다. | NVML counter 미지원 시 fallback 적분값과 counter-vs-trace sanity check |
+| `power.draw.instant` | 사용 가능 | 사용 가능 | last measured power draw 계열 trace. polling interval을 낮춰도 실제 센서 갱신률이 그만큼 올라간다는 뜻은 아니다. | `power.csv`에 별도 컬럼으로 저장 |
+| `power.draw.average` | A100/GA100에서는 `N/A`일 수 있음 | 사용 가능 | last-second average 계열 trace. 100 ms로 polling해도 독립적인 100 ms energy sample로 해석하면 안 된다. | H100 debug trace 컬럼 |
+| `nvmlDeviceGetPowerUsage()` | instantaneous 계열로 해석 | 1초 평균 계열로 해석 | 같은 API라도 A100과 H100의 시간 의미가 다르므로 architecture 비교의 최종 energy source로 쓰지 않는다. | 직접 사용하지 않음 |
+| `module.power.draw.*` | 일반적으로 해당 없음 | GH/Hopper module telemetry에서 보일 수 있음 | module scope는 GPU-only가 아니라 CPU/기타 module component를 포함할 수 있다. | FP16 pJ/bit 계산에 사용하지 않음 |
+
+따라서 A100/H100/RTX 3090 비교에서 보고할 최종 값은 `energy_source=nvml_total_energy_counter`이고 `measurement_grade=strict_nvml_counter`인 selected target만 사용한다. `power_trace_integral` 결과는 legacy/diagnostic grade로 유지하되, strict 비교 표와 figure에는 섞지 않는다.
 
 ### Quality gate policy
 
@@ -398,6 +414,8 @@ python3 scripts/analyze_results.py --input results/p1_gpu0
 | `results/p0_gpu0/raw/*/power.csv` | run별 power/clock/temp trace |
 | `results/p0_gpu0/raw/*/sm_util.csv` | run별 dmon SM utilization trace |
 | `results/p0_gpu0/raw/*/bench.json` | timed loop의 CUDA event timing과 optional NVML total-energy counter delta |
+| `results/p0_gpu0/runtime_preflight.json` | strict pipeline 시작 전 CUDA runtime/GPU metadata probe |
+| `results/p0_gpu0/architecture_preflight.json` | requested CUDA arch, detected chip, common-HMMA path 검증 결과 |
 | `results/p0_gpu0/calibrated_matrix.json` | strict pipeline에서 GPU별 duration target에 맞춰 생성한 matrix |
 | `results/p0_gpu0/matrix_calibration_summary.csv` | calibration에 사용한 observed elapsed, old/new repeats, action 요약 |
 | `results/p0_gpu0/summary.csv` | baseline/test pair별 baseline subtraction 결과 |
