@@ -22,18 +22,18 @@ changes the experiment design:
   * Use a read-only workload so writes, compression, dirty L2 writeback, and
     store-allocation effects do not contaminate the first pass.
   * Measure four matched stages at multiple active bandwidth points:
-        control_l2   : same grid/loop/index/accumulator shape as L2, no global read
+        control_l2   : legacy name for the L2 no-read loop baseline
         l2           : same global read instruction over an L2-resident buffer
-        control_dram : same grid/loop/index/accumulator shape as DRAM, no global read
+        control_dram : legacy name for the DRAM no-read loop baseline
         dram         : same global read instruction over a buffer >> L2
   * Fit average board/GPU power versus measured nominal bandwidth using only
     active points.  This avoids treating a P8/P12 idle baseline as the active
     P0 baseline.  v3 can aggregate repeated phase measurements by median before
     fitting so one noisy phase does not dominate the slope.
   * Report lower-bound separations:
-        L2-over-control       ~= SM/RF/LSU/L2 read-path increment
-        DRAM-over-control     ~= whole DRAM-stream read path above matched control
-        DRAM-global-over-L2    ~= off-chip miss increment: MC + GPU PHY + HBM PHY/core
+        L2 read increment             ~= SM/RF/LSU/L2 read-path increment
+        DRAM read increment total     ~= whole DRAM-stream read path above matched baseline
+        Post-L2 off-chip increment    ~= off-chip miss increment: MC + GPU PHY + HBM PHY/core
         compute-only          ~= optional no-global-memory SM/FMA dynamic reference
         vendor-HBM subtract ~= optional external HBM stack prior, not measured
 
@@ -305,6 +305,7 @@ class DecompResult:
     component: str
     pj_per_bit: float
     note: str
+    legacy_component: str = ""
 
 
 REQUIRED_DECOMP_STAGES = ("control_l2", "l2", "control_dram", "dram")
@@ -319,21 +320,21 @@ STAGE_COLORS = {
 }
 
 STAGE_LABELS = {
-    "control_l2": "control\nL2-sized",
+    "control_l2": "L2 loop\nbaseline",
     "l2": "L2\nresident",
-    "control_dram": "control\nDRAM-sized",
+    "control_dram": "DRAM loop\nbaseline",
     "dram": "DRAM\nstream",
     "compute": "compute\nreference",
 }
 
 COMPONENT_LABELS = {
-    "control_l2_loop": "control\nL2 loop",
+    "l2_loop_baseline": "L2 loop\nbaseline",
     "l2_read_total": "L2 read\ntotal",
-    "control_dram_loop": "control\nDRAM loop",
+    "dram_loop_baseline": "DRAM loop\nbaseline",
     "dram_read_total": "DRAM read\ntotal",
-    "l2_over_control": "L2 over\ncontrol",
-    "dram_over_control": "DRAM over\ncontrol",
-    "dram_global_over_l2": "DRAM over\nL2",
+    "l2_read_increment": "L2 read\nincrement",
+    "dram_read_increment_total": "DRAM read\nincrement total",
+    "post_l2_offchip_increment": "Post-L2\noff-chip inc.",
     "compute_only_reference": "compute\nreference",
     "hbm_stack_external_prior": "external\nHBM prior",
     "gpu_side_after_l2_est": "GPU side\nafter L2",
@@ -357,9 +358,9 @@ def component_label(component: str) -> str:
 def component_color(component: str) -> str:
     if component == "decomposition_incomplete":
         return "#d62728"
-    if component.startswith("control_l2"):
+    if component.startswith("l2_loop_baseline"):
         return STAGE_COLORS["control_l2"]
-    if component.startswith("control_dram"):
+    if component.startswith("dram_loop_baseline"):
         return STAGE_COLORS["control_dram"]
     if component.startswith("l2"):
         return STAGE_COLORS["l2"]
@@ -656,11 +657,11 @@ def build_decomp(fits: dict[str, FitResult], hbm_pjbit: float | None,
 
     def single_stage_note(stage: str) -> str:
         if stage == "control_l2":
-            return "Partial run: matched L2-sized loop/control slope only; not a physical memory path."
+            return "Partial run: matched L2-sized no-read baseline loop slope only; not a physical memory path."
         if stage == "l2":
-            return f"Partial run: L2-resident ld.global.{l2_cache_op} stage slope; full L2-over-control requires control_l2 too."
+            return f"Partial run: L2-resident ld.global.{l2_cache_op} stage slope; full L2 read increment requires control_l2 too."
         if stage == "control_dram":
-            return "Partial run: matched DRAM-sized loop/control slope only; not a physical memory path."
+            return "Partial run: matched DRAM-sized no-read baseline loop slope only; not a physical memory path."
         if stage == "dram":
             return f"Partial run: DRAM-streaming ld.global.{dram_cache_op} stage slope; full off-chip decomposition requires all four main stages."
         if stage == "compute":
@@ -695,9 +696,10 @@ def build_decomp(fits: dict[str, FitResult], hbm_pjbit: float | None,
 
     out = [
         DecompResult(
-            "control_l2_loop",
+            "l2_loop_baseline",
             ctrl_l2,
-            "Matched index/loop/accumulator cost per L2-buffer nominal bit; not a physical memory path.",
+            "Matched no-read index/loop/accumulator cost per L2-buffer nominal bit; not a physical memory path.",
+            "control_l2_loop",
         ),
         DecompResult(
             "l2_read_total",
@@ -705,9 +707,10 @@ def build_decomp(fits: dict[str, FitResult], hbm_pjbit: float | None,
             f"Board-level slope for L2-resident ld.global.{l2_cache_op} loads, including SM/RF/LSU/L2 and active clocks.",
         ),
         DecompResult(
-            "control_dram_loop",
+            "dram_loop_baseline",
             ctrl_dram,
-            "Matched index/loop/accumulator cost per DRAM-buffer nominal bit; not a physical memory path.",
+            "Matched no-read index/loop/accumulator cost per DRAM-buffer nominal bit; not a physical memory path.",
+            "control_dram_loop",
         ),
         DecompResult(
             "dram_read_total",
@@ -715,19 +718,22 @@ def build_decomp(fits: dict[str, FitResult], hbm_pjbit: float | None,
             f"Board-level slope for DRAM-streaming ld.global.{dram_cache_op} loads over a buffer much larger than L2.",
         ),
         DecompResult(
-            "l2_over_control",
+            "l2_read_increment",
             l2_path,
-            "Lower-bound SM/RF/LSU/L2 read-path increment above the L2-sized control loop.",
+            "Lower-bound SM/RF/LSU/L2 read-path increment above the L2-sized no-read baseline loop.",
+            "l2_over_control",
         ),
         DecompResult(
-            "dram_over_control",
+            "dram_read_increment_total",
             dram_path,
-            "Whole DRAM-stream global-read path above the DRAM-sized control loop; still board-level.",
+            "Whole DRAM-stream global-read path above the DRAM-sized no-read baseline loop; still board-level.",
+            "dram_over_control",
         ),
         DecompResult(
-            "dram_global_over_l2",
+            "post_l2_offchip_increment",
             offchip_increment,
             "Additional miss/off-chip increment after removing the L2 read-path estimate: MC + GPU PHY + HBM PHY/core.",
+            "dram_global_over_l2",
         ),
     ]
     if "compute" in fits:
@@ -746,12 +752,12 @@ def build_decomp(fits: dict[str, FitResult], hbm_pjbit: float | None,
             DecompResult(
                 "gpu_side_after_l2_est",
                 offchip_increment - hbm_pjbit if finite(offchip_increment) else float("nan"),
-                "DRAM-global-over-L2 minus external HBM prior; estimates MC/GPU-PHY side residual.",
+                "Post-L2 off-chip increment minus external HBM prior; estimates MC/GPU-PHY side residual.",
             ),
             DecompResult(
                 "gpu_side_whole_read_path_est",
                 dram_path - hbm_pjbit if finite(dram_path) else float("nan"),
-                "DRAM-over-control minus external HBM prior; estimates SM-to-GPU-PHY side residual.",
+                "DRAM read increment total minus external HBM prior; estimates SM-to-GPU-PHY side residual.",
             ),
         ])
     return out
@@ -770,7 +776,7 @@ def save_rows(path: Path, rows: Iterable[object | dict]) -> None:
             if key not in fieldnames:
                 fieldnames.append(key)
     with path.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         writer.writerows(dict_rows)
 
@@ -783,7 +789,7 @@ def save_trace(path: Path, samples: list[base.PowerSample]) -> None:
         "temp_gpu_c", "pstate", "throttle_reasons", "phase",
     ]
     with path.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
+        writer = csv.DictWriter(f, fieldnames=fields, lineterminator="\n")
         writer.writeheader()
         for s in samples:
             d = vars(s).copy()
@@ -969,17 +975,17 @@ def save_method_plot(path: Path, gpu_name: str, decomp: list[DecompResult],
         if label:
             ax.text((x0 + x1) / 2, (y0 + y1) / 2 + 0.025, label, ha="center", va="bottom", fontsize=9)
 
-    box(0.05, 0.68, "control_l2\nloop only", stage_color("control_l2"))
+    box(0.05, 0.68, "L2 loop\nbaseline", stage_color("control_l2"))
     box(0.05, 0.46, f"l2\nld.global.{l2_cache_op}", stage_color("l2"))
-    box(0.33, 0.56, "l2_over_control\n= l2 - control_l2", component_color("l2_over_control"), w=0.24)
+    box(0.33, 0.56, "l2_read_increment\n= l2_read_total\n- l2_loop_baseline", component_color("l2_read_increment"), w=0.24, h=0.16)
     arrow(0.23, 0.74, 0.33, 0.64)
     arrow(0.23, 0.52, 0.33, 0.60)
-    box(0.05, 0.26, "control_dram\nloop only", stage_color("control_dram"))
+    box(0.05, 0.26, "DRAM loop\nbaseline", stage_color("control_dram"))
     box(0.05, 0.04, f"dram\nld.global.{dram_cache_op}", stage_color("dram"))
-    box(0.33, 0.14, "dram_over_control\n= dram - control_dram", component_color("dram_over_control"), w=0.24)
+    box(0.33, 0.14, "dram_read_increment_total\n= dram_read_total\n- dram_loop_baseline", component_color("dram_read_increment_total"), w=0.24, h=0.16)
     arrow(0.23, 0.32, 0.33, 0.22)
     arrow(0.23, 0.10, 0.33, 0.18)
-    box(0.65, 0.35, "dram_global_over_l2\n= dram_over_control\n- l2_over_control", component_color("dram_global_over_l2"), w=0.26, h=0.18)
+    box(0.65, 0.35, "post_l2_offchip_increment\n= dram_read_increment_total\n- l2_read_increment", component_color("post_l2_offchip_increment"), w=0.26, h=0.18)
     arrow(0.57, 0.62, 0.65, 0.47, "subtract")
     arrow(0.57, 0.20, 0.65, 0.40, "subtract")
     if hbm_pjbit is not None and math.isfinite(hbm_pjbit):
@@ -996,7 +1002,7 @@ def save_method_plot(path: Path, gpu_name: str, decomp: list[DecompResult],
                 ha="center", va="center", fontsize=11, color="darkred",
                 bbox={"boxstyle": "round,pad=0.35", "fc": "#fff5f5", "ec": "darkred"})
     ax.text(0.02, 0.94, f"Read-path decomposition logic - {gpu_name}", ha="left", va="center", fontsize=15, weight="bold")
-    ax.text(0.02, 0.90, "Slopes are board/NVML-level avg_power~nominal_bandwidth fits; control slopes are loop-equivalent baselines.",
+    ax.text(0.02, 0.90, "Slopes are board/NVML-level avg_power~nominal_bandwidth fits; baseline slopes are no-read loop-equivalent baselines.",
             ha="left", va="center", fontsize=10)
     fig.tight_layout()
     fig.savefig(path, dpi=170)
@@ -1616,7 +1622,8 @@ def main() -> None:
             "Idle baseline can prefer low-SM-clock samples for diagnostic dynamic_power columns; fits do not depend on idle subtraction.",
             "--only-stage is intended for Nsight Compute validation and produces partial stage-slope output, not a complete decomposition.",
             "Temperature and clock quality warnings should be checked before comparing A100/H100 slopes.",
-            "control/l2/dram use the same grid, loop shape, and accumulator sink convention.",
+            "Legacy control_* stage names mean matched no-read baseline loops, not GPU control units.",
+            "baseline/l2/dram stages use the same grid, loop shape, and accumulator sink convention.",
             "l2 phases are warmed immediately before measurement to improve L2 residency.",
             "dram phases rely on DRAM buffer much larger than L2 and a streaming cache-op hint to make L1/L2 hits unlikely.",
             "ld.global.ca caches at all available cache levels and can include L1/TEX effects; validate with Nsight Compute l1tex/lts counters.",

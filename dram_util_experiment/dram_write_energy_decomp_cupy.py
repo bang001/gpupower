@@ -16,16 +16,16 @@ Write interpretation is harder than read interpretation:
 
 The four main stages mirror the read experiment:
 
-    control_l2   : same index/pattern/accumulator loop as L2 write, no hot-loop global store
+    control_l2   : legacy name for the L2 no-store loop baseline
     l2           : same global store over an L2-sized buffer
-    control_dram : same index/pattern/accumulator loop as DRAM write, no hot-loop global store
+    control_dram : legacy name for the DRAM no-store loop baseline
     dram         : same global store over a buffer >> L2
 
 Derived values are lower-bound board-level separations:
 
-    L2-over-control       ~= SM/RF/LSU/L2 store-path increment
-    DRAM-over-control     ~= whole DRAM-stream store path above matched control
-    DRAM-global-over-L2    ~= extra off-chip/writeback increment: MC + GPU PHY + HBM PHY/core
+    L2 write increment            ~= SM/RF/LSU/L2 store-path increment
+    DRAM write increment total    ~= whole DRAM-stream store path above matched baseline
+    Post-L2 off-chip increment    ~= extra off-chip/writeback increment: MC + GPU PHY + HBM PHY/core
 
 Use Nsight Compute dram/lts/l1tex write counters to validate actual physical
 traffic, especially for L2-resident write stages and store cache policies.
@@ -362,6 +362,7 @@ class DecompResult:
     component: str
     pj_per_bit: float
     note: str
+    legacy_component: str = ""
 
 
 REQUIRED_DECOMP_STAGES = ("control_l2", "l2", "control_dram", "dram")
@@ -376,21 +377,21 @@ STAGE_COLORS = {
 }
 
 STAGE_LABELS = {
-    "control_l2": "control\nL2-sized",
+    "control_l2": "L2 loop\nbaseline",
     "l2": "L2\nresident",
-    "control_dram": "control\nDRAM-sized",
+    "control_dram": "DRAM loop\nbaseline",
     "dram": "DRAM\nstream",
     "compute": "compute\nreference",
 }
 
 COMPONENT_LABELS = {
-    "control_l2_loop": "control\nL2 loop",
+    "l2_loop_baseline": "L2 loop\nbaseline",
     "l2_write_total": "L2 write\ntotal",
-    "control_dram_loop": "control\nDRAM loop",
+    "dram_loop_baseline": "DRAM loop\nbaseline",
     "dram_write_total": "DRAM write\ntotal",
-    "l2_over_control": "L2 over\ncontrol",
-    "dram_over_control": "DRAM over\ncontrol",
-    "dram_global_over_l2": "DRAM over\nL2",
+    "l2_write_increment": "L2 write\nincrement",
+    "dram_write_increment_total": "DRAM write\nincrement total",
+    "post_l2_offchip_increment": "Post-L2\noff-chip inc.",
     "compute_only_reference": "compute\nreference",
     "hbm_stack_external_prior": "external\nHBM prior",
     "gpu_side_after_l2_est": "GPU side\nafter L2",
@@ -414,9 +415,9 @@ def component_label(component: str) -> str:
 def component_color(component: str) -> str:
     if component == "decomposition_incomplete":
         return "#d62728"
-    if component.startswith("control_l2"):
+    if component.startswith("l2_loop_baseline"):
         return STAGE_COLORS["control_l2"]
-    if component.startswith("control_dram"):
+    if component.startswith("dram_loop_baseline"):
         return STAGE_COLORS["control_dram"]
     if component.startswith("l2"):
         return STAGE_COLORS["l2"]
@@ -713,11 +714,11 @@ def build_decomp(fits: dict[str, FitResult], hbm_pjbit: float | None,
 
     def single_stage_note(stage: str) -> str:
         if stage == "control_l2":
-            return "Partial run: matched L2-sized write pattern/control slope only; not a physical memory path."
+            return "Partial run: matched L2-sized no-store baseline loop slope only; not a physical memory path."
         if stage == "l2":
-            return f"Partial run: L2-sized st.global.{l2_cache_op} stage slope; full L2-over-control requires control_l2 too."
+            return f"Partial run: L2-sized st.global.{l2_cache_op} stage slope; full L2 write increment requires control_l2 too."
         if stage == "control_dram":
-            return "Partial run: matched DRAM-sized write pattern/control slope only; not a physical memory path."
+            return "Partial run: matched DRAM-sized no-store baseline loop slope only; not a physical memory path."
         if stage == "dram":
             return f"Partial run: DRAM-streaming st.global.{dram_cache_op} stage slope; full off-chip decomposition requires all four main stages."
         if stage == "compute":
@@ -752,9 +753,10 @@ def build_decomp(fits: dict[str, FitResult], hbm_pjbit: float | None,
 
     out = [
         DecompResult(
-            "control_l2_loop",
+            "l2_loop_baseline",
             ctrl_l2,
-            "Matched index/pattern/accumulator cost per L2-buffer nominal bit; not a physical memory path.",
+            "Matched no-store index/pattern/accumulator cost per L2-buffer nominal bit; not a physical memory path.",
+            "control_l2_loop",
         ),
         DecompResult(
             "l2_write_total",
@@ -762,9 +764,10 @@ def build_decomp(fits: dict[str, FitResult], hbm_pjbit: float | None,
             f"Board-level slope for L2-sized st.global.{l2_cache_op} stores, including SM/RF/LSU/L2 and active clocks.",
         ),
         DecompResult(
-            "control_dram_loop",
+            "dram_loop_baseline",
             ctrl_dram,
-            "Matched index/pattern/accumulator cost per DRAM-buffer nominal bit; not a physical memory path.",
+            "Matched no-store index/pattern/accumulator cost per DRAM-buffer nominal bit; not a physical memory path.",
+            "control_dram_loop",
         ),
         DecompResult(
             "dram_write_total",
@@ -772,19 +775,22 @@ def build_decomp(fits: dict[str, FitResult], hbm_pjbit: float | None,
             f"Board-level slope for DRAM-streaming st.global.{dram_cache_op} stores over a buffer much larger than L2.",
         ),
         DecompResult(
-            "l2_over_control",
+            "l2_write_increment",
             l2_path,
-            "Lower-bound SM/RF/LSU/L2 store-path increment above the L2-sized control loop.",
+            "Lower-bound SM/RF/LSU/L2 store-path increment above the L2-sized no-store baseline loop.",
+            "l2_over_control",
         ),
         DecompResult(
-            "dram_over_control",
+            "dram_write_increment_total",
             dram_path,
-            "Whole DRAM-stream global-store path above the DRAM-sized control loop; still board-level.",
+            "Whole DRAM-stream global-store path above the DRAM-sized no-store baseline loop; still board-level.",
+            "dram_over_control",
         ),
         DecompResult(
-            "dram_global_over_l2",
+            "post_l2_offchip_increment",
             offchip_increment,
             "Additional off-chip/writeback increment after removing the L2 store-path estimate: MC + GPU PHY + HBM PHY/core.",
+            "dram_global_over_l2",
         ),
     ]
     if "compute" in fits:
@@ -803,12 +809,12 @@ def build_decomp(fits: dict[str, FitResult], hbm_pjbit: float | None,
             DecompResult(
                 "gpu_side_after_l2_est",
                 offchip_increment - hbm_pjbit if finite(offchip_increment) else float("nan"),
-                "DRAM-global-over-L2 minus external HBM prior; estimates MC/GPU-PHY side residual.",
+                "Post-L2 off-chip increment minus external HBM prior; estimates MC/GPU-PHY side residual.",
             ),
             DecompResult(
                 "gpu_side_whole_write_path_est",
                 dram_path - hbm_pjbit if finite(dram_path) else float("nan"),
-                "DRAM-over-control minus external HBM prior; estimates SM-to-GPU-PHY side residual.",
+                "DRAM write increment total minus external HBM prior; estimates SM-to-GPU-PHY side residual.",
             ),
         ])
     return out
@@ -828,7 +834,7 @@ def save_rows(path: Path, rows: Iterable[object | dict]) -> None:
             if key not in fieldnames:
                 fieldnames.append(key)
     with path.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         writer.writerows(dict_rows)
 
@@ -841,7 +847,7 @@ def save_trace(path: Path, samples: list[base.PowerSample]) -> None:
         "temp_gpu_c", "pstate", "throttle_reasons", "phase",
     ]
     with path.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
+        writer = csv.DictWriter(f, fieldnames=fields, lineterminator="\n")
         writer.writeheader()
         for s in samples:
             d = vars(s).copy()
@@ -1027,17 +1033,17 @@ def save_method_plot(path: Path, gpu_name: str, decomp: list[DecompResult],
         if label:
             ax.text((x0 + x1) / 2, (y0 + y1) / 2 + 0.025, label, ha="center", va="bottom", fontsize=9)
 
-    box(0.05, 0.68, "control_l2\nloop only", stage_color("control_l2"))
+    box(0.05, 0.68, "L2 loop\nbaseline", stage_color("control_l2"))
     box(0.05, 0.46, f"l2\nst.global.{l2_cache_op}", stage_color("l2"))
-    box(0.33, 0.56, "l2_over_control\n= l2 - control_l2", component_color("l2_over_control"), w=0.24)
+    box(0.33, 0.56, "l2_write_increment\n= l2_write_total\n- l2_loop_baseline", component_color("l2_write_increment"), w=0.24, h=0.16)
     arrow(0.23, 0.74, 0.33, 0.64)
     arrow(0.23, 0.52, 0.33, 0.60)
-    box(0.05, 0.26, "control_dram\nloop only", stage_color("control_dram"))
+    box(0.05, 0.26, "DRAM loop\nbaseline", stage_color("control_dram"))
     box(0.05, 0.04, f"dram\nst.global.{dram_cache_op}", stage_color("dram"))
-    box(0.33, 0.14, "dram_over_control\n= dram - control_dram", component_color("dram_over_control"), w=0.24)
+    box(0.33, 0.14, "dram_write_increment_total\n= dram_write_total\n- dram_loop_baseline", component_color("dram_write_increment_total"), w=0.24, h=0.16)
     arrow(0.23, 0.32, 0.33, 0.22)
     arrow(0.23, 0.10, 0.33, 0.18)
-    box(0.65, 0.35, "dram_global_over_l2\n= dram_over_control\n- l2_over_control", component_color("dram_global_over_l2"), w=0.26, h=0.18)
+    box(0.65, 0.35, "post_l2_offchip_increment\n= dram_write_increment_total\n- l2_write_increment", component_color("post_l2_offchip_increment"), w=0.26, h=0.18)
     arrow(0.57, 0.62, 0.65, 0.47, "subtract")
     arrow(0.57, 0.20, 0.65, 0.40, "subtract")
     if hbm_pjbit is not None and math.isfinite(hbm_pjbit):
@@ -1054,7 +1060,7 @@ def save_method_plot(path: Path, gpu_name: str, decomp: list[DecompResult],
                 ha="center", va="center", fontsize=11, color="darkred",
                 bbox={"boxstyle": "round,pad=0.35", "fc": "#fff5f5", "ec": "darkred"})
     ax.text(0.02, 0.94, f"Write-path decomposition logic - {gpu_name}", ha="left", va="center", fontsize=15, weight="bold")
-    ax.text(0.02, 0.90, "Slopes are board/NVML-level avg_power~nominal_bandwidth fits; control slopes are loop-equivalent baselines.",
+    ax.text(0.02, 0.90, "Slopes are board/NVML-level avg_power~nominal_bandwidth fits; baseline slopes are no-store loop-equivalent baselines.",
             ha="left", va="center", fontsize=10)
     fig.tight_layout()
     fig.savefig(path, dpi=170)
@@ -1679,7 +1685,8 @@ def main() -> None:
             "Idle baseline can prefer low-SM-clock samples for diagnostic dynamic_power columns; fits do not depend on idle subtraction.",
             "--only-stage is intended for Nsight Compute validation and produces partial stage-slope output, not a complete decomposition.",
             "Temperature and clock quality warnings should be checked before comparing A100/H100 slopes.",
-            "control/l2/dram use the same grid, write-pattern generation, loop shape, and accumulator sink convention.",
+            "Legacy control_* stage names mean matched no-store baseline loops, not GPU control units.",
+            "baseline/l2/dram stages use the same grid, write-pattern generation, loop shape, and accumulator sink convention.",
             "l2 write phases are warmed immediately before measurement to improve L2 residency, but dirty-line writeback must be checked with NCU.",
             "dram write phases rely on DRAM buffer much larger than L2 and a streaming store cache-op hint to make cache residency unlikely.",
             "st.global cache operators are hints, not architectural guarantees of L1/L2 bypass or immediate writeback.",

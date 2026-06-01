@@ -745,23 +745,23 @@ for value in values:
 
 ### 12.1 실험 원리 (Methodology)
 
-실험은 4가지 주요 스테이지(Stage)의 Slope(pJ/bit)를 추출하여 상호 차감하는 방식으로 진행된다:
+실험은 4가지 주요 스테이지(Stage)의 Slope(pJ/bit)를 추출하여 상호 차감하는 방식으로 진행된다. 코드의 legacy stage 이름에는 `control_*`이 남아 있지만, 여기서 control은 GPU control unit이 아니라 실제 global read/write를 하지 않는 baseline loop를 뜻한다.
 
 ```text
-1. control_l2: L2-resident 접근을 위한 루프/주소 계산 오버헤드 (메모리 접근 없음)
-2. l2: L2-resident 캐시 읽기 (ld.global.cg 등 활용)
-3. control_dram: DRAM-streaming 접근을 위한 루프/주소 계산 오버헤드 (메모리 접근 없음)
-4. dram: DRAM-streaming 메모리 읽기 (ld.global.cs 등 활용)
+1. l2_loop_baseline: legacy control_l2; L2-sized loop/address/accumulator baseline
+2. l2_read_total: legacy l2; L2-resident cache read total
+3. dram_loop_baseline: legacy control_dram; DRAM-sized loop/address/accumulator baseline
+4. dram_read_total: legacy dram; DRAM/HBM streaming read total
 ```
 
 이 스테이지들의 에너지(pJ/bit) 측정값을 기반으로 다음 요소들을 도출한다:
 
-- **L2 Path (L2 over control)**: `l2` - `control_l2`
-- **DRAM Path (DRAM over control)**: `dram` - `control_dram`
-- **Off-chip Increment (DRAM over L2)**: `DRAM Path` - `L2 Path`
+- **L2 read increment**: `l2_read_total - l2_loop_baseline`
+- **DRAM read increment total**: `dram_read_total - dram_loop_baseline`
+- **Post-L2 off-chip increment**: `DRAM read increment total - L2 read increment`
 
-최종적으로, NVML 기반의 `Off-chip Increment` 측정값은 (MC + GPU PHY + HBM PHY + HBM Core)를 모두 포함하므로, 외부 HBM Prior(`--hbm-pjbit`)를 주입하여 GPU-side Residual을 추정한다:
-- **GPU-side Residual**: `Off-chip Increment` - `--hbm-pjbit`
+최종적으로, NVML 기반의 `Post-L2 off-chip increment` 측정값은 L2 hit read path를 제거하고 남은 L2 miss/off-chip 추가 비용이다. MC + GPU PHY + HBM PHY/core에 가장 가까운 관측값이지만 HBM-only는 아니므로, 외부 HBM Prior(`--hbm-pjbit`)를 주입하여 GPU-side Residual을 추정한다:
+- **GPU-side Residual**: `Post-L2 off-chip increment - --hbm-pjbit`
 
 ### 12.2 기본 실행
 
@@ -785,7 +785,7 @@ v6 패치부터는 코드 내 산출물 생성 기능이 대폭 강화되었다.
    - 시간(Repeat) 흐름에 따른 Power, Bandwidth, SM Clock, GPU 온도 변화를 보여준다.
    - 장시간 실행 시 발생하는 Thermal throttling 이나 Clock drift가 측정값에 미친 영향을 쉽게 식별할 수 있다.
 4. **`*_power.png`**: NVML Power 타임라인과 각 Phase의 실행 구간 오버레이.
-5. **`*_decomposition.png`**: 각 스테이지의 pJ/bit와 최종 계산된 Component (L2 Path, DRAM Path 등)의 막대 그래프 요약.
+5. **`*_decomposition.png`**: 각 스테이지의 pJ/bit와 최종 계산된 Component (`L2 read increment`, `DRAM read increment total`, `Post-L2 off-chip increment` 등)의 막대 그래프 요약.
 
 ### 12.4 Nsight Compute (NCU) 검증
 
