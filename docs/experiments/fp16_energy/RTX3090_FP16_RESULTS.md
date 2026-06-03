@@ -17,14 +17,14 @@ The best RTX 3090 comparison point is the strict-like calibrated diagnostic run:
 
 None of these are final strict hardware-counter claims. Nsight Compute performance-counter access was blocked by `ERR_NVGPUCTRPERM`.
 
-![RTX3090 sweep pJbit](../../../fp16_energy_impl/results/strict_fp16_launch_shape_rtx3090_20260602_115550/figures/thread_sweep_pjbit_tensor_mma_f16acc_vs_tensor_baseline_mov.png)
+![RTX3090 sweep pJbit](../../../fp16_energy_impl/results/rtx3090/strict_fp16_launch_shape_rtx3090_20260602_115550/figures/thread_sweep_pjbit_tensor_mma_f16acc_vs_tensor_baseline_mov.png)
 
 ## Strict-Like Calibrated Diagnostic Run
 
 Result directory:
 
 ```text
-../../../fp16_energy_impl/results/strict_fp16_launch_shape_rtx3090_20260602_115550/
+../../../fp16_energy_impl/results/rtx3090/strict_fp16_launch_shape_rtx3090_20260602_115550/
 ```
 
 | Field | Value |
@@ -52,7 +52,7 @@ The broader planned architecture-comparison sweep range is `threads/block = 32, 
 Result directory:
 
 ```text
-../../../fp16_energy_impl/results/diagnostic_fp16_launch_shape_rtx3090_20260602_125100/
+../../../fp16_energy_impl/results/rtx3090/diagnostic_fp16_launch_shape_rtx3090_20260602_125100/
 ```
 
 This run explicitly skipped NCU. Its diagnostic selected point was again `threads=256`, `blocks/SM=1`, `threads/SM=256`:
@@ -72,7 +72,7 @@ This run explicitly skipped NCU. Its diagnostic selected point was again `thread
 Result directory:
 
 ```text
-../../../fp16_energy_impl/results/strict_fp16_launch_shape_rtx3090_20260602_124900/
+../../../fp16_energy_impl/results/rtx3090/strict_fp16_launch_shape_rtx3090_20260602_124900/
 ```
 
 The strict pipeline passed preflight, architecture check, build, and ptxas resource checks, then stopped at the NCU permission probe:

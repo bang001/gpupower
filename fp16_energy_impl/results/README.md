@@ -1,12 +1,20 @@
 # FP16 Energy Result Artifacts
 
-This directory stores raw experiment artifacts: CSV/JSON summaries, power traces, generated figures, NCU permission probes, and per-run metadata.
+This directory stores raw experiment artifacts grouped by GPU: CSV/JSON summaries, power traces, generated figures, NCU permission probes, and per-run metadata.
 
-Canonical human-readable reports now live under:
+Canonical human-readable reports live under:
 
 ```text
 ../../docs/experiments/fp16_energy/
 ```
+
+## GPU Directory Layout
+
+| GPU | Directory | Status |
+|---|---|---|
+| A100 | [a100/](a100/) | Current A100 full 5s sweep plus focused long sweep and fixed-run provenance |
+| RTX 3090 | [rtx3090/](rtx3090/) | RTX3090 strict-like, diagnostic, NCU-permission, and older fixed-run provenance |
+| H100 | [h100/](h100/) | Reserved for future H100 artifacts; no H100 run is present yet |
 
 ## Canonical Reports
 
@@ -20,16 +28,25 @@ Canonical human-readable reports now live under:
 
 | Directory | Role | Canonical value/status |
 |---|---|---|
-| `fp16_full_sweep_a100_20260603_044813/` | A100 full planned 5s launch-shape sweep plus boundary repeats/work-slope | selected `0.1144 +/- 0.0047 pJ/bit`; lowest mean `0.1050 +/- 0.0013 pJ/bit` |
-| `fp16_long_sweep_a100_20260603_034822/` | A100 focused 5s launch-shape sweep | superseded by full planned sweep; selected `0.1144 +/- 0.0047 pJ/bit` |
-| `fp16_matmul_pjbit_a100_20260603_031033/` | A100 original fixed run plus audit | historical fixed value `0.1469 +/- 0.0109 pJ/bit`; superseded for comparison by 5s sweep |
-| `strict_fp16_launch_shape_rtx3090_20260602_115550/` | RTX3090 strict-like diagnostic | selected `0.3085 +/- 0.0253 pJ/bit`, NCU blocked |
-| `diagnostic_fp16_launch_shape_rtx3090_20260602_125100/` | RTX3090 no-NCU diagnostic sweep | diagnostic only, no strict target |
-| `strict_fp16_launch_shape_rtx3090_20260602_124900/` | RTX3090 strict pipeline attempt | stopped at NCU permission probe |
+| `a100/fp16_full_sweep_a100_20260603_044813/` | A100 full planned 5s launch-shape sweep plus boundary repeats/work-slope | selected `0.1144 +/- 0.0047 pJ/bit`; lowest mean `0.1050 +/- 0.0013 pJ/bit` |
+| `a100/fp16_long_sweep_a100_20260603_034822/` | A100 focused 5s launch-shape sweep | superseded by full planned sweep; selected `0.1144 +/- 0.0047 pJ/bit` |
+| `a100/fp16_matmul_pjbit_a100_20260603_031033/` | A100 original fixed run plus audit | historical fixed value `0.1469 +/- 0.0109 pJ/bit`; superseded for comparison by 5s sweep |
+| `rtx3090/strict_fp16_launch_shape_rtx3090_20260602_115550/` | RTX3090 strict-like diagnostic | selected `0.3085 +/- 0.0253 pJ/bit`, NCU blocked |
+| `rtx3090/diagnostic_fp16_launch_shape_rtx3090_20260602_125100/` | RTX3090 no-NCU diagnostic sweep | diagnostic only, no strict target |
+| `rtx3090/strict_fp16_launch_shape_rtx3090_20260602_124900/` | RTX3090 strict pipeline attempt | stopped at NCU permission probe |
+
+## A100 Full Sweep Tables
+
+| Artifact | Path |
+|---|---|
+| Documentation CSV | `../../docs/experiments/fp16_energy/A100_FP16_FULL_SWEEP_TABLE.csv` |
+| Documentation Excel | `../../docs/experiments/fp16_energy/A100_FP16_FULL_SWEEP_TABLE.xlsx` |
+| Result-local CSV | `a100/fp16_full_sweep_a100_20260603_044813/A100_FP16_FULL_SWEEP_TABLE.csv` |
+| Result-local Excel | `a100/fp16_full_sweep_a100_20260603_044813/A100_FP16_FULL_SWEEP_TABLE.xlsx` |
 
 ## Planned Sweep Range
 
-The broader launch-shape range that should be retained for architecture-comparison runs is:
+The broader launch-shape range retained for architecture-comparison runs is:
 
 ```text
 threads/block: 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 384

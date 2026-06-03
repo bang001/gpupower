@@ -20,6 +20,24 @@ This directory is the canonical documentation location for the FP16 Tensor Core 
 
 ![Updated A100 RTX3090 comparison](images/fp16_a100_rtx3090_updated_comparison.png)
 
+
+## A100 Sweep Artifacts
+
+| Artifact | Path | Notes |
+|---|---|---|
+| Full sweep table (CSV) | [A100_FP16_FULL_SWEEP_TABLE.csv](A100_FP16_FULL_SWEEP_TABLE.csv) | 44 launch shapes, selected/repeated/work-slope columns |
+| Full sweep table (Excel) | [A100_FP16_FULL_SWEEP_TABLE.xlsx](A100_FP16_FULL_SWEEP_TABLE.xlsx) | Workbook with full sweep, work-slope, and metadata sheets |
+| Result-local CSV | `../../../fp16_energy_impl/results/a100/fp16_full_sweep_a100_20260603_044813/A100_FP16_FULL_SWEEP_TABLE.csv` | Copy stored beside raw run artifacts |
+| Result-local Excel | `../../../fp16_energy_impl/results/a100/fp16_full_sweep_a100_20260603_044813/A100_FP16_FULL_SWEEP_TABLE.xlsx` | Copy stored beside raw run artifacts |
+
+## Result Directory Layout
+
+| GPU | Directory | Contents |
+|---|---|---|
+| A100 | `../../../fp16_energy_impl/results/a100/` | Full 5s sweep, focused long sweep, fixed-run provenance |
+| RTX 3090 | `../../../fp16_energy_impl/results/rtx3090/` | Strict-like, diagnostic, NCU-permission, and older fixed-run provenance |
+| H100 | `../../../fp16_energy_impl/results/h100/` | Placeholder for future H100 artifacts; no H100 run is present yet |
+
 ## Launch-Shape Sweep Range
 
 The broad launch-shape range planned for architecture-comparison runs is:
