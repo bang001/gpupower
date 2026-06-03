@@ -1,0 +1,576 @@
+{
+  "description": "A100 full planned FP16 HMMA launch-shape sweep supplement. Appended to fp16_full_sweep_a100_20260603_044813 after copying the prior focused 5s sweep, filling the 32 missing planned launch shapes with >=5s-scaled work.",
+  "defaults": {
+    "blocks": 0,
+    "warmup": 2,
+    "unroll": 8,
+    "suppress_output_store": true
+  },
+  "planned_threads": [
+    32,
+    64,
+    96,
+    128,
+    160,
+    192,
+    224,
+    256,
+    288,
+    320,
+    384
+  ],
+  "planned_blocks_per_sm": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "source_existing_dir": "results/fp16_long_sweep_a100_20260603_034822",
+  "base_product_threads_blocks_iters": 8192000000,
+  "conditions": [
+    {
+      "name": "full5s_tensor_mma_f16acc_t032_b01",
+      "args": {
+        "threads": 32,
+        "blocks_per_sm": 1
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 256000000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 256000000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t032_b02",
+      "args": {
+        "threads": 32,
+        "blocks_per_sm": 2
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 128000000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 128000000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t032_b04",
+      "args": {
+        "threads": 32,
+        "blocks_per_sm": 4
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 64000000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 64000000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t032_b08",
+      "args": {
+        "threads": 32,
+        "blocks_per_sm": 8
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 32000000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 32000000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t064_b01",
+      "args": {
+        "threads": 64,
+        "blocks_per_sm": 1
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 128000000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 128000000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t064_b02",
+      "args": {
+        "threads": 64,
+        "blocks_per_sm": 2
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 64000000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 64000000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t064_b04",
+      "args": {
+        "threads": 64,
+        "blocks_per_sm": 4
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 32000000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 32000000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t064_b08",
+      "args": {
+        "threads": 64,
+        "blocks_per_sm": 8
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 16000000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 16000000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t096_b01",
+      "args": {
+        "threads": 96,
+        "blocks_per_sm": 1
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 85333333,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 85333333,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t096_b02",
+      "args": {
+        "threads": 96,
+        "blocks_per_sm": 2
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 42666667,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 42666667,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t096_b04",
+      "args": {
+        "threads": 96,
+        "blocks_per_sm": 4
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 21333333,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 21333333,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t096_b08",
+      "args": {
+        "threads": 96,
+        "blocks_per_sm": 8
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 10666667,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 10666667,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t160_b01",
+      "args": {
+        "threads": 160,
+        "blocks_per_sm": 1
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 51200000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 51200000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t160_b02",
+      "args": {
+        "threads": 160,
+        "blocks_per_sm": 2
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 25600000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 25600000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t160_b04",
+      "args": {
+        "threads": 160,
+        "blocks_per_sm": 4
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 12800000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 12800000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t160_b08",
+      "args": {
+        "threads": 160,
+        "blocks_per_sm": 8
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 6400000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 6400000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t192_b01",
+      "args": {
+        "threads": 192,
+        "blocks_per_sm": 1
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 42666667,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 42666667,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t192_b02",
+      "args": {
+        "threads": 192,
+        "blocks_per_sm": 2
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 21333333,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 21333333,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t192_b04",
+      "args": {
+        "threads": 192,
+        "blocks_per_sm": 4
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 10666667,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 10666667,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t192_b08",
+      "args": {
+        "threads": 192,
+        "blocks_per_sm": 8
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 5333333,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 5333333,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t224_b01",
+      "args": {
+        "threads": 224,
+        "blocks_per_sm": 1
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 36571429,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 36571429,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t224_b02",
+      "args": {
+        "threads": 224,
+        "blocks_per_sm": 2
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 18285714,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 18285714,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t224_b04",
+      "args": {
+        "threads": 224,
+        "blocks_per_sm": 4
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 9142857,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 9142857,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t224_b08",
+      "args": {
+        "threads": 224,
+        "blocks_per_sm": 8
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 4571429,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 4571429,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t288_b01",
+      "args": {
+        "threads": 288,
+        "blocks_per_sm": 1
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 28444444,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 28444444,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t288_b02",
+      "args": {
+        "threads": 288,
+        "blocks_per_sm": 2
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 14222222,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 14222222,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t288_b04",
+      "args": {
+        "threads": 288,
+        "blocks_per_sm": 4
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 7111111,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 7111111,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t288_b08",
+      "args": {
+        "threads": 288,
+        "blocks_per_sm": 8
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 3555556,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 3555556,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t320_b01",
+      "args": {
+        "threads": 320,
+        "blocks_per_sm": 1
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 25600000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 25600000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t320_b02",
+      "args": {
+        "threads": 320,
+        "blocks_per_sm": 2
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 12800000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 12800000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t320_b04",
+      "args": {
+        "threads": 320,
+        "blocks_per_sm": 4
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 6400000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 6400000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t320_b08",
+      "args": {
+        "threads": 320,
+        "blocks_per_sm": 8
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 3200000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 3200000,
+        "repeats": 1
+      }
+    }
+  ]
+}

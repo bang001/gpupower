@@ -1,0 +1,130 @@
+{
+  "description": "A100 decision-boundary repeat matrix for lower-pJ and near-saturation launch shapes. Appended to full sweep to bring selected candidates to 5 total runs.",
+  "defaults": {
+    "blocks": 0,
+    "warmup": 2,
+    "unroll": 8,
+    "suppress_output_store": true
+  },
+  "conditions": [
+    {
+      "name": "full5s_tensor_mma_f16acc_t160_b08",
+      "args": {
+        "threads": 160,
+        "blocks_per_sm": 8
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 6400000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 6400000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t192_b04",
+      "args": {
+        "threads": 192,
+        "blocks_per_sm": 4
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 10666667,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 10666667,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t192_b08",
+      "args": {
+        "threads": 192,
+        "blocks_per_sm": 8
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 5333333,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 5333333,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t224_b08",
+      "args": {
+        "threads": 224,
+        "blocks_per_sm": 8
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 4571429,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 4571429,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t288_b08",
+      "args": {
+        "threads": 288,
+        "blocks_per_sm": 8
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 3555556,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 3555556,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "full5s_tensor_mma_f16acc_t320_b08",
+      "args": {
+        "threads": 320,
+        "blocks_per_sm": 8
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 3200000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 3200000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "long5s_tensor_mma_f16acc_t384_b2",
+      "args": {
+        "threads": 384,
+        "blocks_per_sm": 2
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 10666667,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 10666667,
+        "repeats": 1
+      }
+    }
+  ]
+}

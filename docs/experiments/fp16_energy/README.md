@@ -6,7 +6,7 @@ This directory is the canonical documentation location for the FP16 Tensor Core 
 
 | Document | Purpose |
 |---|---|
-| [A100_FP16_ENERGY_REPORT.md](A100_FP16_ENERGY_REPORT.md) | A100 GA100 FP16 Tensor Core report, including fixed run, 5s sweep, audit, and NCU limitation |
+| [A100_FP16_ENERGY_REPORT.md](A100_FP16_ENERGY_REPORT.md) | A100 GA100 FP16 Tensor Core report, including full planned 5s sweep, boundary repeats, work-slope checks, audit, and NCU limitation |
 | [RTX3090_FP16_RESULTS.md](RTX3090_FP16_RESULTS.md) | RTX 3090 GA102 strict-like and diagnostic result history |
 | [FP16_A100_RTX3090_COMPARISON.md](FP16_A100_RTX3090_COMPARISON.md) | Cross-GPU comparison and claim boundary |
 
@@ -15,7 +15,7 @@ This directory is the canonical documentation location for the FP16 Tensor Core 
 | GPU | Result | Launch shape | Status |
 |---|---:|---|---|
 | A100-SXM4-80GB | `0.1144 +/- 0.0047 pJ/bit` | `threads=384`, `blocks/SM=4` | quality-gate selected 5s diagnostic |
-| A100-SXM4-80GB lowest mean | `0.1084 +/- 0.0054 pJ/bit` | `threads=384`, `blocks/SM=8` | lower pJ/bit, not first-saturation selected target |
+| A100-SXM4-80GB lowest mean | `0.1050 +/- 0.0013 pJ/bit` | `threads=192`, `blocks/SM=8` | lower pJ/bit, not first-saturation selected target |
 | RTX 3090 | `0.3085 +/- 0.0253 pJ/bit` | `threads=256`, `blocks/SM=1` | strict-like diagnostic, NCU blocked |
 
 ![Updated A100 RTX3090 comparison](images/fp16_a100_rtx3090_updated_comparison.png)
@@ -34,9 +34,9 @@ input bits:    8192 bit/logical MMA
 FLOPs:         8192 FLOP/logical MMA
 ```
 
-This is the intended full coverage range, not a claim that every current A100 result used all 44 launch shapes. The current A100 follow-up used a focused 5-second subset, `threads/block = 128, 256, 384` and `blocks/SM = 1, 2, 4, 8`, because the immediate problem was short measurement windows. The RTX 3090 strict-like diagnostic run used `threads/block = 32, 64, 128, 256` and `blocks/SM = 1, 2, 4, 8`.
+The current A100 follow-up completed this full `11 x 4 = 44` launch-shape range with >=5-second test windows, then repeated the selected and lower-mean boundary candidates to five runs. The RTX 3090 strict-like diagnostic run used `threads/block = 32, 64, 128, 256` and `blocks/SM = 1, 2, 4, 8`.
 
-Target selection is not based on the lowest pJ/bit row alone. The current rule is to choose the first saturation point among rows that pass the quality gate and tensor-model-utilization sanity checks. This is why the A100 representative target is `threads=384`, `blocks/SM=4`, while `threads=384`, `blocks/SM=8` is reported separately as the lower-mean diagnostic point.
+Target selection is not based on the lowest pJ/bit row alone. The current rule is to choose the first saturation point among rows that pass the quality gate and tensor-model-utilization sanity checks. This is why the A100 representative target is `threads=384`, `blocks/SM=4`, while `threads=192`, `blocks/SM=8` is reported separately as the lower-mean diagnostic point after boundary-repeat reinforcement.
 
 ## Claim Boundary
 

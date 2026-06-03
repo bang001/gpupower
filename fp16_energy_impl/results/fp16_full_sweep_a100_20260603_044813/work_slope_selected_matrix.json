@@ -1,0 +1,105 @@
+{
+  "description": "Auto-generated work-amount slope sweep for the quality-gated FP16 target. Run without matrix calibration so unroll changes remain distinct work points.",
+  "generated_utc": "2026-06-03T05:45:10.125700+00:00",
+  "source_quality_gate_summary": "results/fp16_full_sweep_a100_20260603_044813/quality_gate_summary.json",
+  "target_context": {
+    "gpu": "NVIDIA A100-SXM4-80GB",
+    "architecture_generation": "ampere",
+    "architecture_chip": "ga100",
+    "test_kernel": "tensor_mma_f16acc",
+    "baseline_kernel": "tensor_baseline_mov",
+    "threads": 384,
+    "blocks_per_sm_requested": 4,
+    "selected_target_unroll": "8",
+    "threads_per_sm": "1536.0",
+    "matmul_input_pj_per_bit_mean": "0.11444309113637999",
+    "target_selection_note": "quality_gate_first_saturation_point"
+  },
+  "work_slope_expectation": {
+    "fit_scope": "valid_no_l2",
+    "min_distinct_work_points": 3,
+    "min_slope_r2": 0.8,
+    "positive_slope_required": true,
+    "strict_audit_flag": "--require-work-slope"
+  },
+  "defaults": {
+    "blocks": 0,
+    "blocks_per_sm": 4,
+    "warmup": 2,
+    "repeats": 2,
+    "iters": 2000000,
+    "suppress_output_store": true
+  },
+  "conditions": [
+    {
+      "name": "work_slope_tensor_mma_f16acc_t384_b04_u01",
+      "args": {
+        "threads": 384,
+        "unroll": 1
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "repeats": 30
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc"
+      }
+    },
+    {
+      "name": "work_slope_tensor_mma_f16acc_t384_b04_u02",
+      "args": {
+        "threads": 384,
+        "unroll": 2
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "repeats": 30
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc"
+      }
+    },
+    {
+      "name": "work_slope_tensor_mma_f16acc_t384_b04_u04",
+      "args": {
+        "threads": 384,
+        "unroll": 4
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "repeats": 30
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc"
+      }
+    },
+    {
+      "name": "work_slope_tensor_mma_f16acc_t384_b04_u08",
+      "args": {
+        "threads": 384,
+        "unroll": 8
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "repeats": 30
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc"
+      }
+    },
+    {
+      "name": "work_slope_tensor_mma_f16acc_t384_b04_u16",
+      "args": {
+        "threads": 384,
+        "unroll": 16
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "repeats": 30
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc"
+      }
+    }
+  ]
+}
