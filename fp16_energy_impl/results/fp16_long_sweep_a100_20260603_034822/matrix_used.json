@@ -1,0 +1,28 @@
+{
+  "description": "Additional >=5s repeats for the current quality-gate selected A100 sweep point t384_b8. Appended to provide an error bar for the selected target.",
+  "defaults": {
+    "blocks": 0,
+    "warmup": 2,
+    "unroll": 8,
+    "suppress_output_store": true
+  },
+  "conditions": [
+    {
+      "name": "long5s_tensor_mma_f16acc_t384_b8",
+      "args": {
+        "threads": 384,
+        "blocks_per_sm": 8
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 2666667,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 2666667,
+        "repeats": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,215 @@
+{
+  "description": "A100 focused FP16 HMMA launch-shape sweep with >=5s target intervals. Work is approximately normalized across threads/block and blocks/SM by scaling iters from t256,b8. Uses tensor_baseline_mov structural baseline and suppresses output stores. Diagnostic only when NCU is unavailable.",
+  "defaults": {
+    "blocks": 0,
+    "warmup": 2,
+    "unroll": 8,
+    "suppress_output_store": true
+  },
+  "conditions": [
+    {
+      "name": "long5s_tensor_mma_f16acc_t128_b1",
+      "args": {
+        "threads": 128,
+        "blocks_per_sm": 1
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 64000000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 64000000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "long5s_tensor_mma_f16acc_t128_b2",
+      "args": {
+        "threads": 128,
+        "blocks_per_sm": 2
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 32000000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 32000000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "long5s_tensor_mma_f16acc_t128_b4",
+      "args": {
+        "threads": 128,
+        "blocks_per_sm": 4
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 16000000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 16000000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "long5s_tensor_mma_f16acc_t128_b8",
+      "args": {
+        "threads": 128,
+        "blocks_per_sm": 8
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 8000000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 8000000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "long5s_tensor_mma_f16acc_t256_b1",
+      "args": {
+        "threads": 256,
+        "blocks_per_sm": 1
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 32000000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 32000000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "long5s_tensor_mma_f16acc_t256_b2",
+      "args": {
+        "threads": 256,
+        "blocks_per_sm": 2
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 16000000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 16000000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "long5s_tensor_mma_f16acc_t256_b4",
+      "args": {
+        "threads": 256,
+        "blocks_per_sm": 4
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 8000000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 8000000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "long5s_tensor_mma_f16acc_t256_b8",
+      "args": {
+        "threads": 256,
+        "blocks_per_sm": 8
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 4000000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 4000000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "long5s_tensor_mma_f16acc_t384_b1",
+      "args": {
+        "threads": 384,
+        "blocks_per_sm": 1
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 21333333,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 21333333,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "long5s_tensor_mma_f16acc_t384_b2",
+      "args": {
+        "threads": 384,
+        "blocks_per_sm": 2
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 10666667,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 10666667,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "long5s_tensor_mma_f16acc_t384_b4",
+      "args": {
+        "threads": 384,
+        "blocks_per_sm": 4
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 5333333,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 5333333,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "long5s_tensor_mma_f16acc_t384_b8",
+      "args": {
+        "threads": 384,
+        "blocks_per_sm": 8
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_mov",
+        "iters": 2666667,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 2666667,
+        "repeats": 1
+      }
+    }
+  ]
+}

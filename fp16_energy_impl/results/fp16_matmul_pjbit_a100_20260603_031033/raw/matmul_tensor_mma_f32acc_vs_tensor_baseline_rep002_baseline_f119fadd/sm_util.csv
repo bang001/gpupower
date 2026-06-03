@@ -1,0 +1,3 @@
+sample_unix_ns,gpu,sm_util_pct,mem_util_pct,enc_util_pct,dec_util_pct,jpg_util_pct,ofa_util_pct,raw
+1780456288011848998,0,0.0,0.0,0.0,0.0,0.0,0.0,"0, 0, 0, 0, 0, 0, 0"
+1780456289019355172,0,25.0,0.0,0.0,0.0,0.0,0.0,"0, 25, 0, 0, 0, 0, 0"

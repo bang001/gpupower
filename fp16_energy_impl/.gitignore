@@ -1,6 +1,5 @@
 build/
 build_*/
 env/
-results/
 __pycache__/
 *.pyc

@@ -234,6 +234,8 @@ def _check_cuda_and_fp8(r: PreflightResult) -> None:
                 with te.fp8_autocast(enabled=True, fp8_recipe=recipe):
                     linear(x)
             te_ok = True
+        except AssertionError as e:
+            te_status = f"torch-backend installed; FP8 runtime unsupported on this GPU (AssertionError: {str(e)[:120]})"
         except (OSError, RuntimeError) as e:
             te_status = f"torch-backend BROKEN ({type(e).__name__}: {str(e)[:120]})"
         except ImportError as e:
@@ -247,8 +249,12 @@ def _check_cuda_and_fp8(r: PreflightResult) -> None:
         if cc[0] >= 9:
             r.warn(f"H100 detected but TE missing/broken — fp8_te variant will be skipped. Fix: {hint}")
         else:
-            r.warn(f"TE missing/broken — matmul_fp8_te will be skipped (would fall back to FP16 TC anyway). "
-                   f"To run the fallback for cross-GPU comparison: {hint}")
+            if "FP8 runtime unsupported" in te_status:
+                r.warn("TE installed, but this GPU cannot execute FP8 autocast; "
+                       "matmul_fp8_te will be skipped on this device.")
+            else:
+                r.warn(f"TE missing/broken — matmul_fp8_te will be skipped (would fall back to FP16 TC anyway). "
+                       f"To run the fallback for cross-GPU comparison: {hint}")
 
 
 def _check_pynvml(r: PreflightResult, device: int = 0) -> None:
