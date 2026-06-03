@@ -9,6 +9,7 @@ This directory is the canonical documentation location for the FP16 Tensor Core 
 | [A100_FP16_ENERGY_REPORT.md](A100_FP16_ENERGY_REPORT.md) | A100 GA100 FP16 Tensor Core report, including full planned 5s sweep, boundary repeats, work-slope checks, audit, and NCU limitation |
 | [RTX3090_FP16_RESULTS.md](RTX3090_FP16_RESULTS.md) | RTX 3090 GA102 strict-like and diagnostic result history |
 | [FP16_A100_RTX3090_COMPARISON.md](FP16_A100_RTX3090_COMPARISON.md) | Cross-GPU comparison and claim boundary |
+| [H100_FP16_TODO.md](H100_FP16_TODO.md) | Planned H100 FP16 Tensor Core experiment, including API/call-relationship cautions |
 
 ## Current Recommended Diagnostic Values
 
@@ -36,7 +37,7 @@ This directory is the canonical documentation location for the FP16 Tensor Core 
 |---|---|---|
 | A100 | `../../../fp16_energy_impl/results/a100/` | Full 5s sweep, focused long sweep, fixed-run provenance |
 | RTX 3090 | `../../../fp16_energy_impl/results/rtx3090/` | Strict-like, diagnostic, NCU-permission, and older fixed-run provenance |
-| H100 | `../../../fp16_energy_impl/results/h100/` | Placeholder for future H100 artifacts; no H100 run is present yet |
+| H100 | `../../../fp16_energy_impl/results/h100/` | Placeholder for future H100 artifacts; see [H100_FP16_TODO.md](H100_FP16_TODO.md) |
 
 ## Launch-Shape Sweep Range
 
