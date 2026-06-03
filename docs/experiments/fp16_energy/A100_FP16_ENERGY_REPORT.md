@@ -88,6 +88,24 @@ The shorter fixed run is therefore retained as a historical diagnostic, but the 
 
 The sweep scales `iters` so each test interval is roughly 5.9 seconds. Decision points `t256_b8`, `t384_b4`, and `t384_b8` were repeated to five runs for a confidence interval.
 
+## Relation To The Full Planned Sweep
+
+The full architecture-comparison sweep range that should be preserved in the project documentation is wider than the A100 focused run:
+
+```text
+threads/block: 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 384
+blocks/SM:     1, 2, 4, 8
+threads/SM:    32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 384,
+               512, 576, 640, 768, 896, 1024, 1152, 1280, 1536, 1792, 2048, 2304, 2560, 3072
+logical shape: m16n16k16
+input bits:    8192 bit/logical MMA
+FLOPs:         8192 FLOP/logical MMA
+```
+
+That planned range is `11 x 4 = 44` launch-shape combinations before removing duplicate `threads/SM` interpretations. The A100 result in this report comes from the focused 5-second subset, `3 x 4 = 12` combinations. This was intentional: the immediate follow-up was to fix the short `1.47 s` test and `0.43 s` baseline windows by making every measured test/baseline interval exceed 5 seconds, then repeating the decision points enough times to attach error bars.
+
+For a final architecture-coverage run, the broader 44-combination range should be rerun with the same `>=5 s` timing rule and repeated confidence intervals for the selected point, the lower-mean point, and any near-tie saturation points.
+
 ## Selected Sweep Results
 
 | Launch | Repeats | Test s | Baseline s | TFLOPS | Tensor model util | pJ/bit | Interpretation |

@@ -26,6 +26,22 @@ Canonical human-readable reports now live under:
 | `diagnostic_fp16_launch_shape_rtx3090_20260602_125100/` | RTX3090 no-NCU diagnostic sweep | diagnostic only, no strict target |
 | `strict_fp16_launch_shape_rtx3090_20260602_124900/` | RTX3090 strict pipeline attempt | stopped at NCU permission probe |
 
+## Planned Sweep Range
+
+The broader launch-shape range that should be retained for architecture-comparison runs is:
+
+```text
+threads/block: 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 384
+blocks/SM:     1, 2, 4, 8
+threads/SM:    32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 384,
+               512, 576, 640, 768, 896, 1024, 1152, 1280, 1536, 1792, 2048, 2304, 2560, 3072
+logical shape: m16n16k16
+input bits:    8192 bit/logical MMA
+FLOPs:         8192 FLOP/logical MMA
+```
+
+The current A100 result used a focused 5-second subset of this range: `threads/block = 128, 256, 384` and `blocks/SM = 1, 2, 4, 8`. The current RTX 3090 strict-like diagnostic artifact used `threads/block = 32, 64, 128, 256` and `blocks/SM = 1, 2, 4, 8`. See the canonical [FP16 experiment documentation](../../docs/experiments/fp16_energy/README.md) for the selection rule and claim boundary.
+
 ## Claim Boundary
 
 Current A100 and RTX3090 values are diagnostic NVML-counter estimates. Nsight Compute hardware-counter validation is blocked by `ERR_NVGPUCTRPERM` in the available environments, so these are not final strict publishable hardware-counter claims.

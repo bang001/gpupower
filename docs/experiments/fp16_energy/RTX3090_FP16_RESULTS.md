@@ -45,6 +45,8 @@ Result directory:
 
 Lowest pJ/bit diagnostic candidate in that run was `threads=256`, `blocks/SM=8`, `threads/SM=2048`, with `0.074226 pJ/bit`. It is not used as the representative selected point because the selection rule prioritizes the first utilization saturation point, and NCU validation is unavailable.
 
+The broader planned architecture-comparison sweep range is `threads/block = 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 384` crossed with `blocks/SM = 1, 2, 4, 8`. This RTX 3090 strict-like run covered the narrower subset available in the completed artifact, `threads/block = 32, 64, 128, 256`. Therefore it is useful as the current RTX 3090 comparison baseline, but it should not be described as having exhausted the full planned sweep range.
+
 ## No-NCU Diagnostic Sweep
 
 Result directory:
