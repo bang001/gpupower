@@ -1,0 +1,62 @@
+{
+  "description": "A100 FP16 operand-variation diagnostic with a longer roughly 10s timed window. This keeps the same launch shape and operand variants as fp16_operand_variation_a100.json, changing only iters from 5333333 to 10000000.",
+  "defaults": {
+    "blocks": 0,
+    "warmup": 2,
+    "unroll": 8,
+    "suppress_output_store": true
+  },
+  "conditions": [
+    {
+      "name": "operand_fixed_ones_current_t384_b4_10m",
+      "args": {
+        "threads": 384,
+        "blocks_per_sm": 4
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_f16acc_fixed_ones",
+        "iters": 10000000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc",
+        "iters": 10000000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "operand_warp_static_4set_t384_b4_10m",
+      "args": {
+        "threads": 384,
+        "blocks_per_sm": 4
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_f16acc_warp_static_4set",
+        "iters": 10000000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc_warp_static_4set",
+        "iters": 10000000,
+        "repeats": 1
+      }
+    },
+    {
+      "name": "operand_warp_rotating_4set_bounded_t384_b4_10m",
+      "args": {
+        "threads": 384,
+        "blocks_per_sm": 4
+      },
+      "baseline": {
+        "kernel": "tensor_baseline_f16acc_warp_rotating_4set_bounded",
+        "iters": 10000000,
+        "repeats": 10
+      },
+      "test": {
+        "kernel": "tensor_mma_f16acc_warp_rotating_4set_bounded",
+        "iters": 10000000,
+        "repeats": 1
+      }
+    }
+  ]
+}

@@ -11,6 +11,7 @@ This directory is the canonical documentation location for the FP16 Tensor Core 
 | [FP16_A100_RTX3090_COMPARISON.md](FP16_A100_RTX3090_COMPARISON.md) | Cross-GPU comparison and claim boundary |
 | [FP16_OPERAND_VARIATION_EXPERIMENT_PLAN.md](FP16_OPERAND_VARIATION_EXPERIMENT_PLAN.md) | NCU 없이 fixed-operand HMMA switching-activity bias를 확인하기 위한 최소 operand-variation 진단 실험 계획 |
 | [FP16_OPERAND_VARIATION_RESULTS.md](FP16_OPERAND_VARIATION_RESULTS.md) | A100 operand-variation 진단 결과. fixed-operand HMMA 값이 lower-bound pattern임을 보여줌 |
+| [FP16_OPERAND_ORDER_CONTROL_RESULTS.md](FP16_OPERAND_ORDER_CONTROL_RESULTS.md) | A100 operand-variation 실행 순서 control 결과. rotating-first/fixed-last에서도 결론 유지 |
 | [H100_FP16_TODO.md](H100_FP16_TODO.md) | Planned H100 FP16 Tensor Core experiment, including API/call-relationship cautions |
 
 ## Current Recommended Diagnostic Values

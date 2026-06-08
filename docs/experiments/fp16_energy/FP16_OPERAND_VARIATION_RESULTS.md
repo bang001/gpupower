@@ -73,6 +73,20 @@ throughput 저하 때문만이 아니라 operand와 accumulator value pattern의
 temporal operand 변화도 영향을 준다. 하지만 가장 큰 변화는 all-ones/saturating
 pattern에서 벗어나는 순간 발생했다.
 
+## Order-Control Follow-up
+
+같은 A100 GPU에서 실행 순서를 `rotating -> static -> fixed`로 뒤집은 order-control도
+수행했다. 세부 결과는 [FP16_OPERAND_ORDER_CONTROL_RESULTS.md](FP16_OPERAND_ORDER_CONTROL_RESULTS.md)에
+정리되어 있다.
+
+핵심 결과는 fixed control을 마지막에 실행해도 여전히 낮고, rotating 조건을 첫 번째로
+실행해도 여전히 높다는 점이다. Reverse-order 5.3M run에서는 fixed `0.1155 pJ/FLOP`,
+static `0.2534 pJ/FLOP`, rotating `0.3202 pJ/FLOP`이었고, reverse-order 10M run에서는
+fixed `0.1176 pJ/FLOP`, static `0.2664 pJ/FLOP`, rotating `0.3299 pJ/FLOP`이었다.
+
+따라서 fixed/static/rotating 간 큰 차이는 thermal/order bias만으로 설명되지 않는다.
+Order-control은 fixed-operand 결과가 lower-bound diagnostic이라는 해석을 강화한다.
+
 ## Claim Boundary
 
 이 숫자는 여전히 real application GEMM energy가 아니다. timed kernel은
