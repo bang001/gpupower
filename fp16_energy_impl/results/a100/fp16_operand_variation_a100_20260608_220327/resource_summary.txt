@@ -1,0 +1,18 @@
+_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main37tensor_baseline_f16acc_operand_kernelILi8ELi2EEEvPjib
+  0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 14 registers, used 0 barriers, 365 bytes cmem[0]
+_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main37tensor_baseline_f16acc_operand_kernelILi8ELi1EEEvPjib
+  0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 14 registers, used 0 barriers, 365 bytes cmem[0]
+_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main37tensor_baseline_f16acc_operand_kernelILi8ELi0EEEvPjib
+  0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 14 registers, used 0 barriers, 365 bytes cmem[0]
+_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main32tensor_mma_f16acc_operand_kernelILi8ELi2EEEvPjib
+  0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 19 registers, used 0 barriers, 365 bytes cmem[0]
+_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main32tensor_mma_f16acc_operand_kernelILi8ELi1EEEvPjib
+  0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 18 registers, used 0 barriers, 365 bytes cmem[0]
+_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f16acc_kernelILi8EEEvPjib
+  0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+  ptxas info    : Used 14 registers, used 0 barriers, 365 bytes cmem[0]
