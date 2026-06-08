@@ -257,6 +257,39 @@ N_FP16_ops   = warps × iters × mma_per_iter × FLOP_per_MMA
 
 Tensor Core 실험에서 shared memory staging이 필요할 수 있다. 이 경우 shared memory traffic은 FP16 compute energy에 포함될 수 있으므로 결과 표에 별도 column으로 기록한다. P0 primary 결과는 가능한 한 loop 내부 global memory traffic이 없는 조건을 우선한다.
 
+### 6.5 Operand pattern control: fixed / warp-static / warp-rotating
+
+Tensor Core FP16 MMA 실험에서는 같은 FLOP 수라도 operand value pattern이 달라지면
+datapath switching activity와 accumulator 상태가 달라질 수 있다. 따라서 fixed
+operand 조건 하나만으로 representative FP16 matmul energy를 주장하지 않고, 최소한
+다음 세 조건을 비교한다.
+
+| 조건 | Operand 구성 | 확인하려는 효과 | 해석 |
+|---|---|---|---|
+| Fixed control | 모든 warp가 동일한 `1.0` A/B operand를 반복 사용 | 기존 fixed-register HMMA loop의 control point | 값 변화가 거의 없어 switching이 작을 수 있으므로 lower-bound diagnostic으로 본다. |
+| Warp-static 4-set | 네 개의 작은 finite FP16 operand set을 만들고 global warp id별로 하나를 선택한다. 각 warp는 timed loop 동안 같은 set을 유지한다. | warp-to-warp operand diversity와 non-all-ones accumulator pattern의 영향 | fixed 대비 크게 증가하면 all-ones/fixed pattern이 energy를 낮게 보이게 했을 가능성이 커진다. |
+| Warp-rotating 4-set | 같은 네 개 set을 사용하되 warp id와 loop index에 따라 timed loop 안에서 operand set을 rotate한다. | 시간에 따른 operand switching activity 영향 | static보다 높으면 temporal operand 변화도 energy에 영향을 준다. 단, 추가 index/register update 비용이 있으므로 matched baseline과 함께 해석한다. |
+
+비교의 핵심은 다음처럼 분리한다.
+
+| 비교 | 주로 보는 차이 | 주의점 |
+|---|---|---|
+| Fixed control vs Warp-static | 동일한 no-L2 register-resident HMMA 구조에서 all-ones fixed pattern을 벗어났을 때의 증가분 | static 조건은 warp별 set만 다르고 시간적으로는 각 warp 안에서 고정되어 있으므로, 가장 중요한 bias check다. |
+| Warp-static vs Warp-rotating | 같은 operand set을 사용하면서 temporal switching을 추가했을 때의 증가분 | rotating 조건은 operand 선택 로직과 register movement가 조금 더 있으므로 static 대비 차이는 temporal switching과 제어 overhead가 함께 섞일 수 있다. |
+| Fixed control vs Warp-rotating | fixed-pattern lower-bound와 더 dynamic한 operand-pattern diagnostic 사이의 전체 간격 | real GEMM의 memory hierarchy, tiling, scheduler behavior를 포함하지 않으므로 application GEMM energy로 직접 일반화하지 않는다. |
+
+A100 진단 실험에서는 같은 launch shape(`threads=384`, `blocks/SM=4`)에서 fixed가 약
+`0.12 pJ/FLOP`, warp-static이 약 `0.26 pJ/FLOP`, warp-rotating이 약
+`0.31-0.33 pJ/FLOP` 범위로 관찰되었다. 즉 fixed 대비 warp-static은 약 `2.1x`,
+warp-rotating은 약 `2.6x` 수준이었다. 실행 순서를 `rotating -> static -> fixed`로
+뒤집은 order-control에서도 fixed는 낮고 rotating은 높게 유지되었으므로, 이 차이는
+thermal/order bias만으로 설명하기 어렵다.
+
+따라서 fixed control은 기존 결과와 연결되는 기준점으로 유지하되, 최종 문장에서는
+`fixed-pattern lower-bound diagnostic`이라고 명시한다. Warp-static과 warp-rotating은
+real GEMM 그 자체가 아니라, operand value diversity와 temporal switching이 no-L2
+Tensor Core HMMA energy estimate에 미치는 영향을 확인하는 diagnostic control로 보고한다.
+
 ---
 
 ## 7. Baseline Subtraction 설계

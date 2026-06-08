@@ -21,6 +21,14 @@ accumulator 값이 너무 정적으로 유지되어 실제보다 낮게 측정�
 | Warp-static 4-set | `tensor_mma_f16acc_warp_static_4set` | `tensor_baseline_f16acc_warp_static_4set` | global warp id별로 네 개의 작은 normal FP16 operand set 중 하나 선택 |
 | Warp-rotating 4-set | `tensor_mma_f16acc_warp_rotating_4set_bounded` | `tensor_baseline_f16acc_warp_rotating_4set_bounded` | 같은 네 개 set을 warp id와 outer loop index에 따라 rotate |
 
+세 조건의 차이는 다음처럼 해석한다.
+
+| 비교 | 보는 효과 | 해석 포인트 |
+|---|---|---|
+| Fixed control | 모든 warp가 동일한 `1.0` A/B operand를 반복하는 기존 control | datapath switching이 작을 수 있으므로 representative value가 아니라 lower-bound 기준점으로 둔다. |
+| Warp-static 4-set | warp별로 서로 다른 finite operand set을 사용하되, 각 warp 안에서는 timed loop 동안 같은 set 유지 | fixed 대비 증가하면 all-ones/fixed value pattern 자체가 낮은 energy의 원인이었을 가능성이 크다. |
+| Warp-rotating 4-set | 같은 네 개 set을 시간에 따라 rotate | static보다 높으면 temporal operand switching도 영향을 준다. 다만 operand 선택/register update overhead가 일부 섞일 수 있어 matched baseline과 함께 본다. |
+
 초기 계획에는 accumulator를 주기적으로 rebase하는 방법도 포함되어 있었다.
 하지만 실제 구현에서는 timed loop 안에 branch가 들어가 해석을 흐리는 것을
 피하기 위해 더 작은 normal FP16 operand를 사용했다. 이 방식은 선택한 5초
