@@ -1,15 +1,15 @@
 # FP16 A100 vs RTX 3090 Comparison
 
-This document compares the current A100 and RTX 3090 FP16 Tensor Core diagnostic estimates. Both use logical `m16n16k16` FP16 input bits and structural baseline subtraction.
+This document compares the current A100 and RTX 3090 FP16 Tensor Core diagnostic estimates. Both use logical `m16n16k16` FP16 FLOPs and structural baseline subtraction. Older generated columns may say `pJ/bit`; for this benchmark the logical A/B input-bit denominator and FLOP denominator are both `8192` per logical MMA, so the numeric values are identical and are reported here as `pJ/FLOP`.
 
-![Updated comparison](images/fp16_a100_rtx3090_updated_comparison.png)
+![Updated pJ/FLOP comparison](images/fp16_a100_rtx3090_updated_comparison.png)
 
 ## Main Comparison
 
-| GPU / 기준 | Launch shape | pJ/bit | Relative to RTX3090 selected | Status |
+| GPU / 기준 | Launch shape | pJ/FLOP | Relative to RTX3090 selected | Status |
 |---|---|---:|---:|---|
 | A100 quality selected | `threads=384`, `blocks/SM=4` | `0.1144 +/- 0.0047` | `2.70x` lower | 5s diagnostic selected target |
-| A100 lowest mean | `threads=384`, `blocks/SM=8` | `0.1084 +/- 0.0054` | `2.85x` lower | lower mean, not selected representative |
+| A100 lowest mean | `threads=192`, `blocks/SM=8` | `0.1050 +/- 0.0013` | `2.94x` lower | lower mean, not selected representative |
 | A100 old fixed run | `threads=256`, `blocks/SM=8` | `0.1469 +/- 0.0109` | `2.10x` lower | historical short-window diagnostic |
 | RTX 3090 selected | `threads=256`, `blocks/SM=1` | `0.3085 +/- 0.0253` | baseline | strict-like diagnostic, NCU blocked |
 

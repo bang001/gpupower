@@ -458,7 +458,7 @@ def requirement_rows(
             denominator,
             "bench_json_metadata with input_bits=8192 and flops=8192",
         ),
-        row("positive logical FP16 pJ/bit", positive_pjbit, "matmul_input_pj_per_bit_mean > 0"),
+        row("positive logical FP16 pJ/FLOP", positive_pjbit, "matmul_input_pj_per_bit_mean > 0"),
         row("positive Tensor Core model utilization", model_util, "tensor_model_utilization_pct_mean > 0"),
         *(
             [
@@ -466,7 +466,7 @@ def requirement_rows(
                     "work-slope scaling evidence",
                     work_slope,
                     (
-                        "selected target has valid_no_l2 positive work-slope pJ/bit with R2 >= 0.80, "
+                        "selected target has valid_no_l2 positive work-slope pJ/FLOP with R2 >= 0.80, "
                         "current schema, denominator/no-memory provenance, and strict NVML counters"
                     ),
                 )
@@ -682,7 +682,7 @@ def write_markdown(
                     "Target source",
                     "Threads/SM",
                     "Threads/block",
-                    "pJ/bit",
+                    "pJ/FLOP",
                     "TFLOPS",
                     "SM util %",
                     "Util ref %",
@@ -695,7 +695,7 @@ def write_markdown(
                     "No L2/DRAM/local",
                     "Resource ctx",
                     "Work slope",
-                    "Slope pJ/bit",
+                    "Slope pJ/FLOP",
                     "Slope R2",
                     "NCU tensor %",
                 ],
@@ -809,8 +809,8 @@ def write_markdown(
         [
             "## Interpretation",
             "",
-            "- Use only rows with `Publishable=yes` for final pJ/bit claims.",
-            "- `pJ/bit` is logical FP16 matmul input-bit energy, not DRAM bit energy.",
+            "- Use only rows with `Publishable=yes` for final pJ/FLOP claims.",
+            "- `pJ/FLOP` is the logical FP16 matmul compute-energy estimate; legacy input-bit fields are numerically identical for m16n16k16 and are not DRAM bit energy.",
             "- `target_pass` is selected only after all quality gates pass; invalid high-utilization rows cannot define the utilization reference point.",
             "- `strict_nvml_counter` plus structural baseline, pipeline preflight, NCU validation, resource audit, and measurement-resolution gates are required for A100/H100/RTX3090 comparison.",
             "- Pipeline and suite preflight must pass with `dry_run=false`; dry-run output is command validation only.",

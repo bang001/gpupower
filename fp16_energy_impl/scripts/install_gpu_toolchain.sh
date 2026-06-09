@@ -25,7 +25,7 @@ usage() {
 Usage: install_gpu_toolchain.sh [options]
 
 Install a user-space CUDA/Nsight Compute toolchain for the strict FP16
-pJ/bit pipeline and write a sourceable toolchain env file.
+pJ/FLOP pipeline and write a sourceable toolchain env file.
 
 This script does not install or upgrade the NVIDIA driver. The host driver
 must already expose libcuda/NVML through nvidia-smi.

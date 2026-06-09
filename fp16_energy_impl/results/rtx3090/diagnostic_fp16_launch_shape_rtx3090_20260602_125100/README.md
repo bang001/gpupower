@@ -10,9 +10,11 @@ Canonical merged report:
 
 Key diagnostic point:
 
-| Launch shape | TFLOPS | pJ/bit | Status |
+| Launch shape | TFLOPS | pJ/FLOP | Status |
 |---|---:|---:|---|
 | `threads=256`, `blocks/SM=1` | 159.825 | `0.1833 +/- 0.1084` | no strict selected target; NCU skipped/blocked |
+
+The original generated field was `matmul_input_pj_per_bit`. For this logical `m16n16k16` Tensor Core workload, A/B input bits and FLOPs are both `8192` per logical MMA, so the same numeric value is reported as `pJ/FLOP`.
 
 Important artifacts:
 

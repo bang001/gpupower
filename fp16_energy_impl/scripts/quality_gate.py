@@ -1411,9 +1411,9 @@ def plot_thread_quality(rows: List[Dict[str, Any]], figdir: Path) -> None:
             if blocks:
                 label += f"/b{blocks}"
             if math.isfinite(pj):
-                label += f"\n{pj:.3g} pJ/b"
+                label += f"\n{pj:.3g} pJ/FLOP"
             if idx == lowest_pjbit_idx and not parse_bool(r.get("target_pass")):
-                label = f"lowest pJ/b\n{label}"
+                label = f"lowest pJ/FLOP\n{label}"
             near_top = y >= 99.98 or (math.isfinite(top_util) and y >= top_util - 0.01)
             dx, dy = label_offsets.get(idx, (0.0, 7.0))
             ax.annotate(
@@ -1439,7 +1439,7 @@ def plot_thread_quality(rows: List[Dict[str, Any]], figdir: Path) -> None:
                     edgecolor="black",
                     linewidth=0.6,
                     zorder=5,
-                    label="lowest no-L2 pJ/b",
+                    label="lowest no-L2 pJ/FLOP",
                 )
         targets = [r for r in group if parse_bool(r.get("target_pass"))]
         if targets:
@@ -1486,9 +1486,9 @@ def plot_thread_quality(rows: List[Dict[str, Any]], figdir: Path) -> None:
                 if blocks:
                     label += f"/b{blocks}"
                 if math.isfinite(pj):
-                    label += f"\n{pj:.3g} pJ/b"
+                    label += f"\n{pj:.3g} pJ/FLOP"
                 if idx == lowest_pjbit_idx and not parse_bool(r.get("target_pass")):
-                    label = f"lowest pJ/b\n{label}"
+                    label = f"lowest pJ/FLOP\n{label}"
                 dx, dy = label_offsets.get(idx, (0.0, 7.0))
                 ax.annotate(
                     label,
@@ -1514,7 +1514,7 @@ def plot_thread_quality(rows: List[Dict[str, Any]], figdir: Path) -> None:
                         edgecolor="black",
                         linewidth=0.6,
                         zorder=5,
-                        label="lowest no-L2 pJ/b",
+                        label="lowest no-L2 pJ/FLOP",
                     )
 
             saturated_x = [

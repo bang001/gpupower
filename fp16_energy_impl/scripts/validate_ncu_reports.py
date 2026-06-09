@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Validate Nsight Compute reports for FP16 no-L2/HMMA evidence.
 
-The validator is intentionally conservative. A final FP16 pJ/bit result should
+The validator is intentionally conservative. A final FP16 pJ/FLOP result should
 not pass only because the benchmark metadata says the kernel avoids global
 memory. It should also have profiler evidence for:
 
@@ -631,7 +631,7 @@ def summarize(rows: List[Dict[str, Any]], input_dir: Path, args: argparse.Namesp
             "Any WGMMA token evidence fails validation because this benchmark compares the "
             "common A100/H100/RTX3090 warp-level HMMA path, not Hopper WGMMA.",
             "Counters with 'sectors' in the metric ID are normalized to bytes before thresholding.",
-            "Token fallback is diagnostic only; use explicit counters for final pJ/bit claims.",
+            "Token fallback is diagnostic only; use explicit counters for final pJ/FLOP claims.",
             "Rows with validation_pass=false must not be used as final pure-FP16 evidence.",
             "Tensor/SM activity percentages are parsed from explicit metric IDs when available, "
             "falling back to ComputeWorkloadAnalysis section labels.",

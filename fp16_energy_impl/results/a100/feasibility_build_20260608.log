@@ -1,0 +1,405 @@
+[ 33%] Building CUDA object CMakeFiles/fp16_energy_bench.dir/src/fp16_energy_bench.cu.o
+ptxas info    : 0 bytes gmem
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi64ELi0EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi64ELi0EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 254 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 127.130 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi64ELi2EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi64ELi2EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 254 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 120.690 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi64ELi1EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi64ELi1EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 254 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 119.802 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_f32_kernelILi64EEEvPfib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_f32_kernelILi64EEEvPfib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 22 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.824 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f32acc_kernelILi64EEEvPfib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f32acc_kernelILi64EEEvPfib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 18 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 10.570 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_u32_kernelILi64EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_u32_kernelILi64EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 13 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 4.851 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_mov_kernelILi64EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_mov_kernelILi64EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 3.537 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f16acc_kernelILi64EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f16acc_kernelILi64EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 8.032 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main23baseline_regmove_kernelILi64EEEvPK7__half2PS1_i' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main23baseline_regmove_kernelILi64EEEvPK7__half2PS1_i
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 17 registers, used 0 barriers, 372 bytes cmem[0]
+ptxas info    : Compile time = 7.689 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main19baseline_nop_kernelILi64EEEvPK7__half2PS1_ib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main19baseline_nop_kernelILi64EEEvPK7__half2PS1_ib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 8 registers, used 0 barriers, 373 bytes cmem[0]
+ptxas info    : Compile time = 1.521 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main17fp16_half2_kernelILi64EEEvPK7__half2PS1_i' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main17fp16_half2_kernelILi64EEEvPK7__half2PS1_i
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 13 registers, used 0 barriers, 372 bytes cmem[0]
+ptxas info    : Compile time = 9.023 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi32ELi0EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi32ELi0EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 128 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 50.452 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi32ELi2EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi32ELi2EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 128 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 50.557 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi32ELi1EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi32ELi1EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 128 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 51.140 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_f32_kernelILi32EEEvPfib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_f32_kernelILi32EEEvPfib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 22 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.531 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f32acc_kernelILi32EEEvPfib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f32acc_kernelILi32EEEvPfib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 18 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 6.203 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_u32_kernelILi32EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_u32_kernelILi32EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 13 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 2.899 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_mov_kernelILi32EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_mov_kernelILi32EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 2.422 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f16acc_kernelILi32EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f16acc_kernelILi32EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 4.769 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main23baseline_regmove_kernelILi32EEEvPK7__half2PS1_i' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main23baseline_regmove_kernelILi32EEEvPK7__half2PS1_i
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 17 registers, used 0 barriers, 372 bytes cmem[0]
+ptxas info    : Compile time = 4.368 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main19baseline_nop_kernelILi32EEEvPK7__half2PS1_ib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main19baseline_nop_kernelILi32EEEvPK7__half2PS1_ib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 8 registers, used 0 barriers, 373 bytes cmem[0]
+ptxas info    : Compile time = 1.419 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main17fp16_half2_kernelILi32EEEvPK7__half2PS1_i' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main17fp16_half2_kernelILi32EEEvPK7__half2PS1_i
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 13 registers, used 0 barriers, 372 bytes cmem[0]
+ptxas info    : Compile time = 5.174 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi16ELi0EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi16ELi0EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 20 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 23.605 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi16ELi2EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi16ELi2EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 20 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 22.530 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi16ELi1EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi16ELi1EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 20 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 22.492 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_f32_kernelILi16EEEvPfib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_f32_kernelILi16EEEvPfib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 22 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.496 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f32acc_kernelILi16EEEvPfib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f32acc_kernelILi16EEEvPfib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 18 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 3.684 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_u32_kernelILi16EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_u32_kernelILi16EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 13 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 2.143 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_mov_kernelILi16EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_mov_kernelILi16EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.843 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f16acc_kernelILi16EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f16acc_kernelILi16EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 3.050 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main23baseline_regmove_kernelILi16EEEvPK7__half2PS1_i' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main23baseline_regmove_kernelILi16EEEvPK7__half2PS1_i
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 17 registers, used 0 barriers, 372 bytes cmem[0]
+ptxas info    : Compile time = 2.827 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main19baseline_nop_kernelILi16EEEvPK7__half2PS1_ib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main19baseline_nop_kernelILi16EEEvPK7__half2PS1_ib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 8 registers, used 0 barriers, 373 bytes cmem[0]
+ptxas info    : Compile time = 1.379 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main17fp16_half2_kernelILi16EEEvPK7__half2PS1_i' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main17fp16_half2_kernelILi16EEEvPK7__half2PS1_i
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 13 registers, used 0 barriers, 372 bytes cmem[0]
+ptxas info    : Compile time = 3.294 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi8ELi0EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi8ELi0EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 22 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 12.323 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi8ELi2EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi8ELi2EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 22 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 12.164 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi8ELi1EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi8ELi1EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 22 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 12.161 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_f32_kernelILi8EEEvPfib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_f32_kernelILi8EEEvPfib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 22 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.472 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f32acc_kernelILi8EEEvPfib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f32acc_kernelILi8EEEvPfib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 18 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 2.672 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_u32_kernelILi8EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_u32_kernelILi8EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 13 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.713 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_mov_kernelILi8EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_mov_kernelILi8EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.570 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f16acc_kernelILi8EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f16acc_kernelILi8EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 2.279 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main23baseline_regmove_kernelILi8EEEvPK7__half2PS1_i' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main23baseline_regmove_kernelILi8EEEvPK7__half2PS1_i
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 17 registers, used 0 barriers, 372 bytes cmem[0]
+ptxas info    : Compile time = 2.044 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main19baseline_nop_kernelILi8EEEvPK7__half2PS1_ib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main19baseline_nop_kernelILi8EEEvPK7__half2PS1_ib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 8 registers, used 0 barriers, 373 bytes cmem[0]
+ptxas info    : Compile time = 1.398 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main17fp16_half2_kernelILi8EEEvPK7__half2PS1_i' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main17fp16_half2_kernelILi8EEEvPK7__half2PS1_i
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 13 registers, used 0 barriers, 372 bytes cmem[0]
+ptxas info    : Compile time = 2.378 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi4ELi0EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi4ELi0EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 29 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 7.966 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi4ELi2EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi4ELi2EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 29 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 7.900 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi4ELi1EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi4ELi1EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 29 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 7.925 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_f32_kernelILi4EEEvPfib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_f32_kernelILi4EEEvPfib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 22 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.466 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f32acc_kernelILi4EEEvPfib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f32acc_kernelILi4EEEvPfib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 18 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 2.288 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_u32_kernelILi4EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_u32_kernelILi4EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.502 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_mov_kernelILi4EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_mov_kernelILi4EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.500 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f16acc_kernelILi4EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f16acc_kernelILi4EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 2.008 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main23baseline_regmove_kernelILi4EEEvPK7__half2PS1_i' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main23baseline_regmove_kernelILi4EEEvPK7__half2PS1_i
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 16 registers, used 0 barriers, 372 bytes cmem[0]
+ptxas info    : Compile time = 1.680 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main19baseline_nop_kernelILi4EEEvPK7__half2PS1_ib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main19baseline_nop_kernelILi4EEEvPK7__half2PS1_ib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 8 registers, used 0 barriers, 373 bytes cmem[0]
+ptxas info    : Compile time = 1.364 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main17fp16_half2_kernelILi4EEEvPK7__half2PS1_i' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main17fp16_half2_kernelILi4EEEvPK7__half2PS1_i
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 12 registers, used 0 barriers, 372 bytes cmem[0]
+ptxas info    : Compile time = 1.901 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi2ELi0EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi2ELi0EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 24 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 5.933 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi2ELi2EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi2ELi2EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 24 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 5.844 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi2ELi1EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi2ELi1EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 24 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 5.682 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_f32_kernelILi2EEEvPfib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_f32_kernelILi2EEEvPfib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 22 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.460 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f32acc_kernelILi2EEEvPfib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f32acc_kernelILi2EEEvPfib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 18 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.935 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_u32_kernelILi2EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_u32_kernelILi2EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 11 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.380 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_mov_kernelILi2EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_mov_kernelILi2EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.379 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f16acc_kernelILi2EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f16acc_kernelILi2EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.707 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main23baseline_regmove_kernelILi2EEEvPK7__half2PS1_i' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main23baseline_regmove_kernelILi2EEEvPK7__half2PS1_i
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 372 bytes cmem[0]
+ptxas info    : Compile time = 1.457 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main19baseline_nop_kernelILi2EEEvPK7__half2PS1_ib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main19baseline_nop_kernelILi2EEEvPK7__half2PS1_ib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 8 registers, used 0 barriers, 373 bytes cmem[0]
+ptxas info    : Compile time = 1.400 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main17fp16_half2_kernelILi2EEEvPK7__half2PS1_i' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main17fp16_half2_kernelILi2EEEvPK7__half2PS1_i
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 372 bytes cmem[0]
+ptxas info    : Compile time = 1.926 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi1ELi0EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi1ELi0EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 18 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 4.755 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi1ELi2EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi1ELi2EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 18 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 4.343 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi1ELi1EEEvPKjPjmii' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main20memory_policy_kernelILi1ELi1EEEvPKjPjmii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 18 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 4.283 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_f32_kernelILi1EEEvPfib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_f32_kernelILi1EEEvPfib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 22 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.442 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f32acc_kernelILi1EEEvPfib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f32acc_kernelILi1EEEvPfib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 18 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.763 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_u32_kernelILi1EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_u32_kernelILi1EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 10 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.347 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_mov_kernelILi1EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main26tensor_baseline_mov_kernelILi1EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.312 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f16acc_kernelILi1EEEvPjib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main24tensor_mma_f16acc_kernelILi1EEEvPjib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 365 bytes cmem[0]
+ptxas info    : Compile time = 1.654 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main23baseline_regmove_kernelILi1EEEvPK7__half2PS1_i' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main23baseline_regmove_kernelILi1EEEvPK7__half2PS1_i
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 372 bytes cmem[0]
+ptxas info    : Compile time = 1.434 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main19baseline_nop_kernelILi1EEEvPK7__half2PS1_ib' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main19baseline_nop_kernelILi1EEEvPK7__half2PS1_ib
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 8 registers, used 0 barriers, 373 bytes cmem[0]
+ptxas info    : Compile time = 1.346 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main17fp16_half2_kernelILi1EEEvPK7__half2PS1_i' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main17fp16_half2_kernelILi1EEEvPK7__half2PS1_i
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 372 bytes cmem[0]
+ptxas info    : Compile time = 1.587 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main17init_float_kernelEPfmf' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main17init_float_kernelEPfmf
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 14 registers, used 0 barriers, 372 bytes cmem[0]
+ptxas info    : Compile time = 1.304 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main15init_u32_kernelEPjmj' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main15init_u32_kernelEPjmj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 10 registers, used 0 barriers, 372 bytes cmem[0]
+ptxas info    : Compile time = 1.207 ms
+ptxas info    : Compiling entry function '_ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main17init_half2_kernelEP7__half2mf' for 'sm_80'
+ptxas info    : Function properties for _ZN49_GLOBAL__N__8ac58c41_20_fp16_energy_bench_cu_main17init_half2_kernelEP7__half2mf
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 12 registers, used 0 barriers, 372 bytes cmem[0]
+ptxas info    : Compile time = 1.449 ms
+[ 66%] Linking CUDA device code CMakeFiles/fp16_energy_bench.dir/cmake_device_link.o
+[100%] Linking CUDA executable fp16_energy_bench
+[100%] Built target fp16_energy_bench

@@ -270,7 +270,7 @@ ArchitectureProfile classify_architecture(const cudaDeviceProp& prop) {
     p.measurement_note =
         "RTX 3090/GA102 path uses warp-level HMMA m16n8k16 pairs; board-level power and boost "
         "behavior are more variable than datacenter GPUs, so clock stability and no-L2 validation "
-        "must be checked before using the pJ/bit estimate";
+        "must be checked before using the pJ/FLOP estimate";
   } else if (prop.major == 8) {
     p.generation = "ampere";
     p.chip = "ampere_sm8x";
@@ -291,7 +291,17 @@ void usage(const char* argv0) {
       << "  baseline_nop             P0 loop/no-FP16 no-op baseline\n"
       << "  baseline_regmove         P0 integer/register-move baseline\n"
       << "  tensor_mma_f16acc        P0 Tensor Core MMA, FP16 input + FP16 accumulate\n"
+      << "  tensor_mma_f16acc_warp_static_4set\n"
+      << "                            P0 Tensor Core MMA with 4 finite operand sets selected per warp\n"
+      << "  tensor_mma_f16acc_warp_rotating_4set_bounded\n"
+      << "                            P0 Tensor Core MMA with per-warp operand rotation and bounded accumulators\n"
       << "  tensor_mma_f32acc        P0 Tensor Core MMA, FP16 input + FP32 accumulate\n"
+      << "  tensor_baseline_f16acc_fixed_ones\n"
+      << "                            P0 matched no-HMMA baseline for fixed-ones f16acc operand test\n"
+      << "  tensor_baseline_f16acc_warp_static_4set\n"
+      << "                            P0 matched no-HMMA baseline for static 4-set f16acc operand test\n"
+      << "  tensor_baseline_f16acc_warp_rotating_4set_bounded\n"
+      << "                            P0 matched no-HMMA baseline for rotating 4-set f16acc operand test\n"
       << "  tensor_baseline_mov      P0 no-memory warp-sync baseline for f16acc output shape\n"
       << "  tensor_baseline_u32      P0 Tensor baseline for f16acc output shape\n"
       << "  tensor_baseline_f32      P0 Tensor baseline for f32acc output shape\n"
@@ -425,6 +435,87 @@ constexpr uint64_t kTensorF16AccumulatorBitsPerLogicalMma =
     kTensorLogicalM * kTensorLogicalN * 16ull;
 constexpr uint64_t kTensorF32AccumulatorBitsPerLogicalMma =
     kTensorLogicalM * kTensorLogicalN * 32ull;
+struct TensorF16Operands {
+  uint32_t a0;
+  uint32_t a1;
+  uint32_t a2;
+  uint32_t a3;
+  uint32_t b0;
+  uint32_t b1;
+  uint32_t b2;
+  uint32_t b3;
+};
+
+__device__ __forceinline__ TensorF16Operands fixed_ones_operands() {
+  return TensorF16Operands{
+      0x3c003c00u, 0x3c003c00u, 0x3c003c00u, 0x3c003c00u,
+      0x3c003c00u, 0x3c003c00u, 0x3c003c00u, 0x3c003c00u};
+}
+
+__device__ __forceinline__ TensorF16Operands finite_operand_set4(int set_idx) {
+  switch (set_idx & 3) {
+    case 0:
+      return TensorF16Operands{
+          0xa0002000u, 0x1c002000u, 0xa0001c00u, 0x2000a000u,
+          0x1c002000u, 0xa0002000u, 0x20001c00u, 0x1c00a000u};
+    case 1:
+      return TensorF16Operands{
+          0x1e001c00u, 0x1c001e00u, 0x9c001c00u, 0x1e009c00u,
+          0x1c009c00u, 0x1e001c00u, 0x9c001e00u, 0x1c001c00u};
+    case 2:
+      return TensorF16Operands{
+          0x1f009e00u, 0x9d001f00u, 0x20009e00u, 0x9e001f00u,
+          0x9d002000u, 0x1f009d00u, 0x20001f00u, 0x9d009e00u};
+    default:
+      return TensorF16Operands{
+          0x9c001f00u, 0x20009c00u, 0x9e001f00u, 0x1f002000u,
+          0x20009e00u, 0x1f009c00u, 0x9e002000u, 0x20001f00u};
+  }
+}
+
+template <int MODE>
+__device__ __forceinline__ TensorF16Operands select_f16_operands(int tid, int i, int u) {
+  if constexpr (MODE == 0) {
+    (void)tid;
+    (void)i;
+    (void)u;
+    return fixed_ones_operands();
+  } else if constexpr (MODE == 1) {
+    (void)i;
+    (void)u;
+    return finite_operand_set4((tid >> 5) & 3);
+  } else {
+    return finite_operand_set4(((tid >> 5) + i + u) & 3);
+  }
+}
+
+__device__ __forceinline__ void set_bounded_f16_accumulators(int tid, int set_idx, uint32_t& c0,
+                                                             uint32_t& c1, uint32_t& c2,
+                                                             uint32_t& c3) {
+  const uint32_t pos = 0x2c002c00u;  // half2(+0.0625, +0.0625)
+  const uint32_t neg = 0xac00ac00u;  // half2(-0.0625, -0.0625)
+  const uint32_t alt = 0x2c00ac00u;  // half2(-0.0625, +0.0625)
+  const uint32_t alt2 = 0xac002c00u; // half2(+0.0625, -0.0625)
+  const int lane = tid & 31;
+  c0 = ((lane + set_idx) & 1) ? pos : neg;
+  c1 = ((lane + set_idx) & 2) ? alt : alt2;
+  c2 = ((lane + set_idx) & 4) ? neg : pos;
+  c3 = ((lane + set_idx) & 8) ? alt2 : alt;
+}
+
+template <int MODE>
+__device__ __forceinline__ int f16_rebase_set_index(int tid, int i) {
+  if constexpr (MODE == 0) {
+    (void)tid;
+    (void)i;
+    return 0;
+  } else if constexpr (MODE == 1) {
+    (void)i;
+    return (tid >> 5) & 3;
+  } else {
+    return ((tid >> 5) + i) & 3;
+  }
+}
 
 template <int UNROLL>
 __global__ void fp16_half2_kernel(const half2* __restrict__ in, half2* __restrict__ out,
@@ -538,6 +629,69 @@ __global__ void tensor_mma_f16acc_kernel(uint32_t* __restrict__ out, int iters,
           : "=r"(d2), "=r"(d3)
           : "r"(a0), "r"(a1), "r"(a2), "r"(a3), "r"(b2), "r"(b3), "r"(c2),
             "r"(c3));
+      c0 = d0;
+      c1 = d1;
+      c2 = d2;
+      c3 = d3;
+    }
+  }
+  if (suppress_output_store) {
+    consume_u32(c0);
+    consume_u32(c1);
+    consume_u32(c2);
+    consume_u32(c3);
+  } else {
+    const size_t base = static_cast<size_t>(tid) * 4;
+    out[base + 0] = c0;
+    out[base + 1] = c1;
+    out[base + 2] = c2;
+    out[base + 3] = c3;
+  }
+#else
+  if (tid == 0) out[0] = 0u;
+#endif
+}
+
+template <int UNROLL, int MODE>
+__global__ void tensor_mma_f16acc_operand_kernel(uint32_t* __restrict__ out, int iters,
+                                                 bool suppress_output_store) {
+  const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+#if __CUDA_ARCH__ >= 800
+  uint32_t c0 = 0x00000000u;
+  uint32_t c1 = 0x2c002c00u;
+  uint32_t c2 = 0xac00ac00u;
+  uint32_t c3 = 0x2c00ac00u;
+  if constexpr (MODE != 0) {
+    set_bounded_f16_accumulators(tid, f16_rebase_set_index<MODE>(tid, 0), c0, c1, c2, c3);
+  } else {
+    c0 = static_cast<uint32_t>(tid & 1) ? 0x00010001u : 0x00000000u;
+    c1 = static_cast<uint32_t>(tid & 2) ? 0x00010001u : 0x00000000u;
+    c2 = static_cast<uint32_t>(tid & 4) ? 0x00010001u : 0x00000000u;
+    c3 = static_cast<uint32_t>(tid & 8) ? 0x00010001u : 0x00000000u;
+  }
+  const TensorF16Operands invariant_op = select_f16_operands<MODE>(tid, 0, 0);
+
+#pragma unroll 1
+  for (int i = 0; i < iters; ++i) {
+    TensorF16Operands op = invariant_op;
+    if constexpr (MODE == 2) {
+      op = select_f16_operands<MODE>(tid, i, 0);
+    }
+#pragma unroll
+    for (int u = 0; u < UNROLL; ++u) {
+      uint32_t d0, d1, d2, d3;
+      asm volatile(
+          "mma.sync.aligned.m16n8k16.row.col.f16.f16.f16.f16 "
+          "{%0, %1}, {%2, %3, %4, %5}, {%6, %7}, {%8, %9};\n"
+          : "=r"(d0), "=r"(d1)
+          : "r"(op.a0), "r"(op.a1), "r"(op.a2), "r"(op.a3), "r"(op.b0), "r"(op.b1),
+            "r"(c0), "r"(c1));
+      asm volatile(
+          "mma.sync.aligned.m16n8k16.row.col.f16.f16.f16.f16 "
+          "{%0, %1}, {%2, %3, %4, %5}, {%6, %7}, {%8, %9};\n"
+          : "=r"(d2), "=r"(d3)
+          : "r"(op.a0), "r"(op.a1), "r"(op.a2), "r"(op.a3), "r"(op.b2), "r"(op.b3),
+            "r"(c2), "r"(c3));
       c0 = d0;
       c1 = d1;
       c2 = d2;
@@ -699,6 +853,51 @@ __global__ void tensor_baseline_mov_kernel(uint32_t* __restrict__ out, int iters
   }
 }
 
+template <int UNROLL, int MODE>
+__global__ void tensor_baseline_f16acc_operand_kernel(uint32_t* __restrict__ out, int iters,
+                                                      bool suppress_output_store) {
+  const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+  uint32_t c0 = 0x00000000u;
+  uint32_t c1 = 0x2c002c00u;
+  uint32_t c2 = 0xac00ac00u;
+  uint32_t c3 = 0x2c00ac00u;
+  if constexpr (MODE != 0) {
+    set_bounded_f16_accumulators(tid, f16_rebase_set_index<MODE>(tid, 0), c0, c1, c2, c3);
+  } else {
+    c0 = static_cast<uint32_t>(tid & 1) ? 0x00010001u : 0x00000000u;
+    c1 = static_cast<uint32_t>(tid & 2) ? 0x00010001u : 0x00000000u;
+    c2 = static_cast<uint32_t>(tid & 4) ? 0x00010001u : 0x00000000u;
+    c3 = static_cast<uint32_t>(tid & 8) ? 0x00010001u : 0x00000000u;
+  }
+  const TensorF16Operands invariant_op = select_f16_operands<MODE>(tid, 0, 0);
+#pragma unroll 1
+  for (int i = 0; i < iters; ++i) {
+    TensorF16Operands op = invariant_op;
+    if constexpr (MODE == 2) {
+      op = select_f16_operands<MODE>(tid, i, 0);
+    }
+#pragma unroll
+    for (int u = 0; u < UNROLL; ++u) {
+      asm volatile("bar.warp.sync 0xffffffff;\n");
+      asm volatile("" :: "r"(op.a0), "r"(op.a1), "r"(op.a2), "r"(op.a3), "r"(op.b0),
+                   "r"(op.b1), "r"(op.b2), "r"(op.b3), "r"(c0), "r"(c1), "r"(c2),
+                   "r"(c3));
+    }
+  }
+  if (suppress_output_store) {
+    consume_u32(c0);
+    consume_u32(c1);
+    consume_u32(c2);
+    consume_u32(c3);
+  } else {
+    const size_t base = static_cast<size_t>(tid) * 4;
+    out[base + 0] = c0;
+    out[base + 1] = c1;
+    out[base + 2] = c2;
+    out[base + 3] = c3;
+  }
+}
+
 template <int UNROLL>
 __global__ void tensor_baseline_f32_kernel(float* __restrict__ out, int iters,
                                            bool suppress_output_store) {
@@ -790,13 +989,24 @@ bool is_half2_kernel(const std::string& k) {
   return k == "fp16_half2" || k == "baseline_nop" || k == "baseline_regmove";
 }
 
+bool is_tensor_mma_f16acc_kernel(const std::string& k) {
+  return k == "tensor_mma_f16acc" || k == "tensor_mma_f16acc_warp_static_4set" ||
+         k == "tensor_mma_f16acc_warp_rotating_4set_bounded";
+}
+
+bool is_tensor_mma_f32acc_kernel(const std::string& k) {
+  return k == "tensor_mma_f32acc";
+}
+
 bool is_tensor_u32_kernel(const std::string& k) {
-  return k == "tensor_mma_f16acc" || k == "tensor_baseline_mov" ||
-         k == "tensor_baseline_u32";
+  return is_tensor_mma_f16acc_kernel(k) || k == "tensor_baseline_mov" ||
+         k == "tensor_baseline_u32" || k == "tensor_baseline_f16acc_fixed_ones" ||
+         k == "tensor_baseline_f16acc_warp_static_4set" ||
+         k == "tensor_baseline_f16acc_warp_rotating_4set_bounded";
 }
 
 bool is_tensor_f32_kernel(const std::string& k) {
-  return k == "tensor_mma_f32acc" || k == "tensor_baseline_f32";
+  return is_tensor_mma_f32acc_kernel(k) || k == "tensor_baseline_f32";
 }
 
 bool is_memory_kernel(const std::string& k) {
@@ -856,8 +1066,52 @@ uint64_t tensor_logical_mma_count(const Args& args, int blocks, int threads) {
 }
 
 uint64_t tensor_accumulator_bits_per_logical_mma(const std::string& kernel) {
-  return kernel == "tensor_mma_f16acc" ? kTensorF16AccumulatorBitsPerLogicalMma
-                                       : kTensorF32AccumulatorBitsPerLogicalMma;
+  return is_tensor_mma_f16acc_kernel(kernel) ? kTensorF16AccumulatorBitsPerLogicalMma
+                                             : kTensorF32AccumulatorBitsPerLogicalMma;
+}
+
+std::string operand_variation_mode_label(const std::string& kernel) {
+  if (kernel == "tensor_mma_f16acc" || kernel == "tensor_baseline_f16acc_fixed_ones" ||
+      kernel == "tensor_baseline_mov" || kernel == "tensor_baseline_u32") {
+    return "fixed_ones_current";
+  }
+  if (kernel == "tensor_mma_f16acc_warp_static_4set" ||
+      kernel == "tensor_baseline_f16acc_warp_static_4set") {
+    return "warp_static_4set_bounded_accumulator";
+  }
+  if (kernel == "tensor_mma_f16acc_warp_rotating_4set_bounded" ||
+      kernel == "tensor_baseline_f16acc_warp_rotating_4set_bounded") {
+    return "warp_rotating_4set_bounded";
+  }
+  return "not_applicable";
+}
+
+int operand_variation_set_count(const std::string& kernel) {
+  const std::string mode = operand_variation_mode_label(kernel);
+  if (mode == "fixed_ones_current") return 1;
+  if (mode == "warp_static_4set_bounded_accumulator" || mode == "warp_rotating_4set_bounded") {
+    return 4;
+  }
+  return 0;
+}
+
+int operand_variation_rebase_period(const std::string& kernel) {
+  (void)kernel;
+  return 0;
+}
+
+bool operand_variation_accumulator_bounded(const std::string& kernel) {
+  const std::string mode = operand_variation_mode_label(kernel);
+  return mode == "warp_static_4set_bounded_accumulator" || mode == "warp_rotating_4set_bounded";
+}
+
+std::string operand_variation_bound_strategy(const std::string& kernel) {
+  const std::string mode = operand_variation_mode_label(kernel);
+  if (mode == "warp_static_4set_bounded_accumulator" || mode == "warp_rotating_4set_bounded") {
+    return "small_normal_operands_no_periodic_rebase";
+  }
+  if (mode == "fixed_ones_current") return "none_fixed_ones_may_saturate";
+  return "not_applicable";
 }
 
 template <int UNROLL>
@@ -922,6 +1176,21 @@ TimingResult launch_timed(const Args& args, int blocks, int threads, size_t tota
       if (args.kernel == "tensor_mma_f16acc") {
         tensor_mma_f16acc_kernel<UNROLL><<<blocks, threads>>>(d_out, args.iters,
                                                              args.suppress_output_store);
+      } else if (args.kernel == "tensor_mma_f16acc_warp_static_4set") {
+        tensor_mma_f16acc_operand_kernel<UNROLL, 1><<<blocks, threads>>>(
+            d_out, args.iters, args.suppress_output_store);
+      } else if (args.kernel == "tensor_mma_f16acc_warp_rotating_4set_bounded") {
+        tensor_mma_f16acc_operand_kernel<UNROLL, 2><<<blocks, threads>>>(
+            d_out, args.iters, args.suppress_output_store);
+      } else if (args.kernel == "tensor_baseline_f16acc_fixed_ones") {
+        tensor_baseline_f16acc_operand_kernel<UNROLL, 0><<<blocks, threads>>>(
+            d_out, args.iters, args.suppress_output_store);
+      } else if (args.kernel == "tensor_baseline_f16acc_warp_static_4set") {
+        tensor_baseline_f16acc_operand_kernel<UNROLL, 1><<<blocks, threads>>>(
+            d_out, args.iters, args.suppress_output_store);
+      } else if (args.kernel == "tensor_baseline_f16acc_warp_rotating_4set_bounded") {
+        tensor_baseline_f16acc_operand_kernel<UNROLL, 2><<<blocks, threads>>>(
+            d_out, args.iters, args.suppress_output_store);
       } else if (args.kernel == "tensor_baseline_mov") {
         tensor_baseline_mov_kernel<UNROLL><<<blocks, threads>>>(d_out, args.iters,
                                                                 args.suppress_output_store);
@@ -1066,7 +1335,7 @@ uint64_t fp16_ops_estimate(const Args& args, int blocks, int threads) {
     // Per inner unroll: 4 half2 FMA instructions. One half2 FMA = 2 lanes * 2 FLOP = 4 FLOP.
     return total_threads * repeats * iters * unroll * 4ull * 4ull;
   }
-  if (args.kernel == "tensor_mma_f16acc" || args.kernel == "tensor_mma_f32acc") {
+  if (is_tensor_mma_f16acc_kernel(args.kernel) || is_tensor_mma_f32acc_kernel(args.kernel)) {
     // One logical m16n16k16 tile is implemented as two m16n8k16 warp-level MMA instructions.
     return tensor_logical_mma_count(args, blocks, threads) * kTensorFlopsPerLogicalMma;
   }
@@ -1091,8 +1360,8 @@ std::string cache_policy_label(const std::string& kernel) {
 
 std::string fp16_path_label(const std::string& kernel) {
   if (kernel == "fp16_half2") return "cuda_core_half2_fma";
-  if (kernel == "tensor_mma_f16acc") return "tensor_core_mma_m16n16k16_f16acc";
-  if (kernel == "tensor_mma_f32acc") return "tensor_core_mma_m16n16k16_f32acc";
+  if (is_tensor_mma_f16acc_kernel(kernel)) return "tensor_core_mma_m16n16k16_f16acc";
+  if (is_tensor_mma_f32acc_kernel(kernel)) return "tensor_core_mma_m16n16k16_f32acc";
   return "baseline_or_memory";
 }
 
@@ -1173,6 +1442,16 @@ int main(int argc, char** argv) {
      << "\",\n";
   os << "  \"kernel\": \"" << json_escape(args.kernel) << "\",\n";
   os << "  \"fp16_path\": \"" << fp16_path_label(args.kernel) << "\",\n";
+  os << "  \"operand_variation_mode\": \""
+     << json_escape(operand_variation_mode_label(args.kernel)) << "\",\n";
+  os << "  \"operand_variation_set_count\": " << operand_variation_set_count(args.kernel)
+     << ",\n";
+  os << "  \"operand_variation_accumulator_rebase_period\": "
+     << operand_variation_rebase_period(args.kernel) << ",\n";
+  os << "  \"operand_variation_accumulator_bounded\": "
+     << (operand_variation_accumulator_bounded(args.kernel) ? "true" : "false") << ",\n";
+  os << "  \"operand_variation_accumulator_bound_strategy\": \""
+     << json_escape(operand_variation_bound_strategy(args.kernel)) << "\",\n";
   os << "  \"cache_policy\": \"" << cache_policy_label(args.kernel) << "\",\n";
   os << "  \"device_index\": " << args.device << ",\n";
   os << "  \"device_name\": \"" << json_escape(prop.name) << "\",\n";
@@ -1209,7 +1488,7 @@ int main(int argc, char** argv) {
      << (timed_kernel_has_intended_global_memory(args) ? "true" : "false") << ",\n";
   os << "  \"timed_kernel_memory_provenance_note\": \""
      << json_escape(timed_kernel_memory_provenance_note(args)) << "\",\n";
-  if (args.kernel == "tensor_mma_f16acc" || args.kernel == "tensor_mma_f32acc") {
+  if (is_tensor_mma_f16acc_kernel(args.kernel) || is_tensor_mma_f32acc_kernel(args.kernel)) {
     const uint64_t mma_count = tensor_logical_mma_count(args, args.blocks, args.threads);
     const uint64_t acc_bits_per_mma = tensor_accumulator_bits_per_logical_mma(args.kernel);
     os << "  \"mma_m\": " << kTensorLogicalM << ",\n";

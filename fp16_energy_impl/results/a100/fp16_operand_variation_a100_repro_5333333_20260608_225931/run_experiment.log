@@ -1,0 +1,74 @@
+Telemetry nvidia-smi id: 0
+
+=== matrix repeat 1/5 ===
+
+=== condition: operand_fixed_ones_current_t384_b4 ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_fixed_ones --iters 5333333 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_fixed_ones_current_t384_b4_rep000_baseline_33a2c06a/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc --iters 5333333 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_fixed_ones_current_t384_b4_rep000_test_5934a420/bench.json
+
+=== condition: operand_warp_static_4set_t384_b4 ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_warp_static_4set --iters 5333333 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_static_4set_t384_b4_rep000_baseline_e575141c/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc_warp_static_4set --iters 5333333 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_static_4set_t384_b4_rep000_test_ac29a812/bench.json
+
+=== condition: operand_warp_rotating_4set_bounded_t384_b4 ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_warp_rotating_4set_bounded --iters 5333333 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_rotating_4set_bounded_t384_b4_rep000_baseline_bdee750b/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc_warp_rotating_4set_bounded --iters 5333333 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_rotating_4set_bounded_t384_b4_rep000_test_f7ff32b6/bench.json
+
+=== matrix repeat 2/5 ===
+
+=== condition: operand_fixed_ones_current_t384_b4 ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_fixed_ones --iters 5333333 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_fixed_ones_current_t384_b4_rep001_baseline_937ca6d2/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc --iters 5333333 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_fixed_ones_current_t384_b4_rep001_test_858cc46f/bench.json
+
+=== condition: operand_warp_static_4set_t384_b4 ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_warp_static_4set --iters 5333333 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_static_4set_t384_b4_rep001_baseline_69bfa1db/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc_warp_static_4set --iters 5333333 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_static_4set_t384_b4_rep001_test_92419d2e/bench.json
+
+=== condition: operand_warp_rotating_4set_bounded_t384_b4 ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_warp_rotating_4set_bounded --iters 5333333 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_rotating_4set_bounded_t384_b4_rep001_baseline_c095e638/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc_warp_rotating_4set_bounded --iters 5333333 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_rotating_4set_bounded_t384_b4_rep001_test_866dc63f/bench.json
+
+=== matrix repeat 3/5 ===
+
+=== condition: operand_fixed_ones_current_t384_b4 ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_fixed_ones --iters 5333333 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_fixed_ones_current_t384_b4_rep002_baseline_fba78b74/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc --iters 5333333 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_fixed_ones_current_t384_b4_rep002_test_4f4ca215/bench.json
+
+=== condition: operand_warp_static_4set_t384_b4 ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_warp_static_4set --iters 5333333 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_static_4set_t384_b4_rep002_baseline_108445dd/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc_warp_static_4set --iters 5333333 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_static_4set_t384_b4_rep002_test_50d54ad1/bench.json
+
+=== condition: operand_warp_rotating_4set_bounded_t384_b4 ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_warp_rotating_4set_bounded --iters 5333333 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_rotating_4set_bounded_t384_b4_rep002_baseline_a6514d60/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc_warp_rotating_4set_bounded --iters 5333333 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_rotating_4set_bounded_t384_b4_rep002_test_f0ea70ea/bench.json
+
+=== matrix repeat 4/5 ===
+
+=== condition: operand_fixed_ones_current_t384_b4 ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_fixed_ones --iters 5333333 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_fixed_ones_current_t384_b4_rep003_baseline_0e3cd8b8/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc --iters 5333333 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_fixed_ones_current_t384_b4_rep003_test_d1a96e4f/bench.json
+
+=== condition: operand_warp_static_4set_t384_b4 ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_warp_static_4set --iters 5333333 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_static_4set_t384_b4_rep003_baseline_9e7a6671/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc_warp_static_4set --iters 5333333 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_static_4set_t384_b4_rep003_test_21ba7366/bench.json
+
+=== condition: operand_warp_rotating_4set_bounded_t384_b4 ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_warp_rotating_4set_bounded --iters 5333333 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_rotating_4set_bounded_t384_b4_rep003_baseline_caaed5b0/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc_warp_rotating_4set_bounded --iters 5333333 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_rotating_4set_bounded_t384_b4_rep003_test_817a8fdf/bench.json
+
+=== matrix repeat 5/5 ===
+
+=== condition: operand_fixed_ones_current_t384_b4 ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_fixed_ones --iters 5333333 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_fixed_ones_current_t384_b4_rep004_baseline_d3d0cf97/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc --iters 5333333 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_fixed_ones_current_t384_b4_rep004_test_17191a30/bench.json
+
+=== condition: operand_warp_static_4set_t384_b4 ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_warp_static_4set --iters 5333333 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_static_4set_t384_b4_rep004_baseline_ef55c016/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc_warp_static_4set --iters 5333333 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_static_4set_t384_b4_rep004_test_678bb256/bench.json
+
+=== condition: operand_warp_rotating_4set_bounded_t384_b4 ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_warp_rotating_4set_bounded --iters 5333333 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_rotating_4set_bounded_t384_b4_rep004_baseline_7e281d05/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc_warp_rotating_4set_bounded --iters 5333333 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/raw/operand_warp_rotating_4set_bounded_t384_b4_rep004_test_146639de/bench.json
+
+Wrote run metadata: results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931/runs.jsonl
+Next: python3 scripts/analyze_results.py --input results/a100/fp16_operand_variation_a100_repro_5333333_20260608_225931

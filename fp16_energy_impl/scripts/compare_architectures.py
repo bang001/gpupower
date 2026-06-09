@@ -691,7 +691,7 @@ def selected_annotation(row: Dict[str, Any]) -> str:
             label += f"/b{blocks}"
     pjbit = parse_float(row.get("matmul_input_pj_per_bit_mean"))
     if math.isfinite(pjbit):
-        label += f"\n{pjbit:.3g} pJ/b"
+        label += f"\n{pjbit:.3g} pJ/FLOP"
     return label
 
 
@@ -854,7 +854,7 @@ def plot_thread_compare(thread_rows: List[Dict[str, Any]], outdir: Path) -> None
                         continue
                     label_text = selected_annotation(r)
                     if quality_class(r) not in {"target", "diagnostic_target"} and not parse_bool(r.get("selected_optimal")):
-                        label_text = "lowest pJ/b\n" + label_text
+                        label_text = "lowest pJ/FLOP\n" + label_text
                     near_right = math.isfinite(x_max) and x >= x_max * 0.78
                     near_top = (math.isfinite(y_max) and y >= y_max - 0.2) or y >= 98.0
                     x_offset = -8 if near_right else 8
@@ -874,7 +874,7 @@ def plot_thread_compare(thread_rows: List[Dict[str, Any]], outdir: Path) -> None
                 ax.set_xlabel("Launched threads per SM")
                 ax.set_ylabel("Avg SM utilization (%)")
                 ax.set_title(
-                    f"Architecture thread sweep utilization colored by pJ/bit: {test_kernel} vs {baseline_kernel}"
+                    f"Architecture thread sweep utilization colored by pJ/FLOP: {test_kernel} vs {baseline_kernel}"
                 )
                 ax.get_xaxis().set_major_formatter(ScalarFormatter())
                 ax.grid(True, axis="y", alpha=0.25)
@@ -882,7 +882,7 @@ def plot_thread_compare(thread_rows: List[Dict[str, Any]], outdir: Path) -> None
                 ax.add_artist(arch_legend)
                 add_quality_legend(ax)
                 cbar = fig.colorbar(ScalarMappable(norm=norm, cmap=cmap), ax=ax)
-                cbar.set_label("pJ/logical input bit")
+                cbar.set_label("pJ/FLOP")
                 fig.tight_layout()
                 safe = f"architecture_thread_sweep_util_pjbit_{test_kernel}_vs_{baseline_kernel}.png".replace("/", "_")
                 fig.savefig(outdir / safe, dpi=160)
@@ -901,7 +901,7 @@ def plot_thread_compare(thread_rows: List[Dict[str, Any]], outdir: Path) -> None
                     scatter_quality_point(ax, x, y, r, line.get_color())
                     if quality_class(r) == "target" and math.isfinite(x) and math.isfinite(y):
                         ax.annotate(
-                            f"{r.get('threads', '')}\n{y:.3g} pJ/b",
+                            f"{r.get('threads', '')}\n{y:.3g} pJ/FLOP",
                             (x, y),
                             textcoords="offset points",
                             xytext=(0, 8),
@@ -912,8 +912,8 @@ def plot_thread_compare(thread_rows: List[Dict[str, Any]], outdir: Path) -> None
         if plotted:
             ax.axhline(0.0, color="0.35", linewidth=0.8)
             ax.set_xlabel("Launched threads per SM")
-            ax.set_ylabel("pJ/logical input bit")
-            ax.set_title(f"Architecture thread sweep pJ/bit: {test_kernel} vs {baseline_kernel}")
+            ax.set_ylabel("pJ/FLOP")
+            ax.set_title(f"Architecture thread sweep pJ/FLOP: {test_kernel} vs {baseline_kernel}")
             ax.get_xaxis().set_major_formatter(ScalarFormatter())
             ax.grid(True, axis="y", alpha=0.25)
             arch_legend = ax.legend(loc="best", title="architecture")
@@ -1164,14 +1164,14 @@ def plot_coverage(rows: List[Dict[str, Any]], outdir: Path) -> None:
     ax.set_xticks([0, 1, 2])
     ax.set_xticklabels(["missing", "diagnostic", "strict"])
     ax.set_xlabel("Strict comparison coverage")
-    ax.set_title("Required architecture coverage for FP16 pJ/bit comparison")
+    ax.set_title("Required architecture coverage for FP16 pJ/FLOP comparison")
     ax.grid(True, axis="x", alpha=0.25)
     for idx, row in enumerate(plot_rows):
         status = str(row.get("coverage_status", ""))
         pjbit = parse_float(row.get("best_matmul_input_pj_per_bit_mean"))
         detail = status
         if math.isfinite(pjbit):
-            detail += f"\n{pjbit:.3g} pJ/b"
+            detail += f"\n{pjbit:.3g} pJ/FLOP"
         elif status == "missing_result":
             detail += "\nno result dir"
         else:
@@ -1243,7 +1243,7 @@ def comparison_summary(
         "audit_dir": str(audit_dir or ""),
         "audit_required_for_publishable": bool(audit_dir),
         "final_value_policy": (
-            "When --audit-dir is supplied, only audit_pass=true rows are publishable FP16 pJ/bit "
+            "When --audit-dir is supplied, only audit_pass=true rows are publishable FP16 pJ/FLOP "
             "comparison points. Without --audit-dir, strict quality-gate targets are diagnostic "
             "readiness evidence and should still be audited before final claims."
         ),
@@ -1399,7 +1399,7 @@ def main() -> int:
     plot_bar(
         best,
         "matmul_input_pj_per_bit_mean",
-        "pJ/logical input bit",
+        "pJ/FLOP",
         "Best pure-FP16 matmul energy candidate by architecture",
         args.outdir / "architecture_best_matmul_input_pj_per_bit.png",
     )

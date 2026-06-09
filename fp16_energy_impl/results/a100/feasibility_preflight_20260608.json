@@ -1,0 +1,155 @@
+{
+  "generated_utc": "2026-06-08T21:09:37.931185+00:00",
+  "preflight_schema": "fp16-strict-architecture-suite-preflight-v1",
+  "overall_pass": true,
+  "required_tools_pass": true,
+  "required_tool_fail_reasons": [],
+  "dry_run": false,
+  "environment": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "CUDA_DEVICE_ORDER": "",
+    "CMAKE_CUDA_FLAGS": "",
+    "PATH": "/root/.codex/tmp/arg0/codex-arg0eiiKXa:/root/.vscode-server/cli/servers/Stable-8761a5560cfd65fdd19ce7e2bd18dab5c0a4d84e/server/bin/remote-cli:/opt/instance-tools/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.vscode-server/extensions/openai.chatgpt-26.5602.40724-linux-x64/bin/linux-x86_64"
+  },
+  "tool_results": [
+    {
+      "name": "python",
+      "command": [
+        "/usr/bin/python3",
+        "--version"
+      ],
+      "required": true,
+      "path": "/usr/bin/python3",
+      "available": true,
+      "returncode": 0,
+      "stdout": "Python 3.12.3",
+      "stderr": "",
+      "pass": true,
+      "fail_reasons": [],
+      "warnings": []
+    },
+    {
+      "name": "cmake",
+      "command": [
+        "cmake",
+        "--version"
+      ],
+      "required": true,
+      "path": "/usr/bin/cmake",
+      "available": true,
+      "returncode": 0,
+      "stdout": "cmake version 3.28.3\n\nCMake suite maintained and supported by Kitware (kitware.com/cmake).",
+      "stderr": "",
+      "pass": true,
+      "fail_reasons": [],
+      "warnings": []
+    },
+    {
+      "name": "nvidia-smi",
+      "command": [
+        "nvidia-smi",
+        "--version"
+      ],
+      "required": true,
+      "path": "/usr/bin/nvidia-smi",
+      "available": true,
+      "returncode": 0,
+      "stdout": "NVIDIA-SMI version  : 570.195.03\nNVML version        : 570.195\nDRIVER version      : 570.195.03\nCUDA Version        : 12.8",
+      "stderr": "",
+      "pass": true,
+      "fail_reasons": [],
+      "warnings": []
+    },
+    {
+      "name": "nvcc",
+      "command": [
+        "nvcc",
+        "--version"
+      ],
+      "required": true,
+      "path": "/usr/local/cuda/bin/nvcc",
+      "available": true,
+      "returncode": 0,
+      "stdout": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Fri_Feb_21_20:23:50_PST_2025\nCuda compilation tools, release 12.8, V12.8.93\nBuild cuda_12.8.r12.8/compiler.35583870_0",
+      "stderr": "",
+      "pass": true,
+      "fail_reasons": [],
+      "warnings": []
+    },
+    {
+      "name": "ncu",
+      "command": [
+        "ncu",
+        "--version"
+      ],
+      "required": true,
+      "path": "/usr/local/cuda/bin/ncu",
+      "available": true,
+      "returncode": 0,
+      "stdout": "NVIDIA (R) Nsight Compute Command Line Profiler\nCopyright (c) 2018-2025 NVIDIA Corporation\nVersion 2025.1.1.0 (build 35528883) (public-release)",
+      "stderr": "",
+      "pass": true,
+      "fail_reasons": [],
+      "warnings": []
+    }
+  ],
+  "cuda_toolchain_compatibility": {
+    "checked": true,
+    "pass": true,
+    "nvcc_release": "12.8",
+    "driver_cuda_version": "12.8",
+    "needs_compatible_toolchain": false,
+    "recommended_cuda_toolkit": "",
+    "recovery_commands": [],
+    "recovery_note": "",
+    "fail_reasons": [],
+    "warnings": []
+  },
+  "compute_apps_query": {
+    "command": [
+      "nvidia-smi",
+      "--query-compute-apps=pid,process_name,used_memory,gpu_uuid",
+      "--format=csv,noheader,nounits"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "compute_apps": [],
+  "rows": [
+    {
+      "label": "pipeline",
+      "gpu": "0",
+      "cuda_arch": "80",
+      "nvidia_smi_id": "GPU-dbb33614-0be2-bdd4-76e0-ee7700ee4386",
+      "raw_spec": "pipeline:0:80:GPU-dbb33614-0be2-bdd4-76e0-ee7700ee4386",
+      "expected_chip": "ga100",
+      "expected_generation": "ampere",
+      "gpu_name": "NVIDIA A100-SXM4-80GB",
+      "gpu_uuid": "GPU-dbb33614-0be2-bdd4-76e0-ee7700ee4386",
+      "gpu_index": "0",
+      "gpu_pci_bus_id": "00000000:07:00.0",
+      "driver_version": "570.195.03",
+      "power_limit_w": "400.00",
+      "active_compute_app_count": 0,
+      "active_compute_apps": [],
+      "preflight_pass": true,
+      "fail_reasons": [],
+      "warnings": [],
+      "required_tools_pass": true,
+      "required_tool_fail_reasons": [],
+      "toolchain_compatibility_pass": true,
+      "toolchain_needs_compatible_toolchain": false,
+      "toolchain_nvcc_release": "12.8",
+      "toolchain_driver_cuda_version": "12.8",
+      "toolchain_recommended_cuda_toolkit": "",
+      "toolchain_recovery_commands": [],
+      "toolchain_recovery_note": "",
+      "overall_preflight_pass": true,
+      "publishable_preflight_pass": true,
+      "overall_fail_reasons": [],
+      "target_fail_reasons": []
+    }
+  ],
+  "fail_reasons": []
+}

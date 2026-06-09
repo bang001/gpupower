@@ -4,7 +4,7 @@ RTX 3090/GA102 result artifacts live here, including strict-like, diagnostic, NC
 
 | Directory/File | Role | Status |
 |---|---|---|
-| `strict_fp16_launch_shape_rtx3090_20260602_115550/` | Strict-like launch-shape diagnostic | Current RTX3090 diagnostic target `0.3085 +/- 0.0253 pJ/bit` at `threads=256`, `blocks/SM=1` |
+| `strict_fp16_launch_shape_rtx3090_20260602_115550/` | Strict-like launch-shape diagnostic | Current RTX3090 diagnostic target `0.3085 +/- 0.0253 pJ/FLOP` at `threads=256`, `blocks/SM=1` |
 | `diagnostic_fp16_launch_shape_rtx3090_20260602_125100/` | No-NCU diagnostic sweep | Diagnostic only |
 | `strict_fp16_launch_shape_rtx3090_20260602_124900/` | Strict pipeline attempt | Stopped at NCU permission probe |
 | `strict_fp16_launch_shape_rtx3090_ncu_20260602_194341/` | NCU permission probe rerun | Permission-limited provenance |

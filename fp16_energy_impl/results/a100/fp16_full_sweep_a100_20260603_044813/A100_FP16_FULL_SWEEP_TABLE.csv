@@ -1,4 +1,4 @@
-Launch,Threads/block,Blocks/SM,Threads/SM,Runs,Test s,Baseline s,TFLOPS,Tensor util %,pJ/bit,CI95,Selected,Selection status
+Launch,Threads/block,Blocks/SM,Threads/SM,Runs,Test s,Baseline s,TFLOPS,Tensor util %,pJ/FLOP,CI95,Selected,Selection status
 t32_b1,32,1,32,1,35.601,112.611,50.90,16.32,0.1836,0.0000,,valid_no_l2_not_selected
 t32_b2,32,2,64,1,17.802,56.310,101.79,32.64,0.1842,0.0000,,valid_no_l2_not_selected
 t32_b4,32,4,128,1,8.904,28.153,203.50,65.25,0.1876,0.0000,,valid_no_l2_not_selected

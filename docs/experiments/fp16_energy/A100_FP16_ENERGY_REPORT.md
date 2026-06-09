@@ -14,36 +14,38 @@ The recommended A100 diagnostic value is the full planned 5-second launch-shape 
 
 | Basis | Launch shape | Repeats | Result |
 |---|---|---:|---:|
-| Quality-gate selected saturation point | `threads=384`, `blocks/SM=4` | 5 | `0.1144 +/- 0.0047 pJ/bit` |
-| Lowest mean diagnostic point | `threads=192`, `blocks/SM=8` | 5 | `0.1050 +/- 0.0013 pJ/bit` |
-| Selected target work-slope | `threads=384`, `blocks/SM=4` | 5 work points | `0.1406 pJ/bit`, R2 `0.986` |
-| Lowest mean work-slope | `threads=192`, `blocks/SM=8` | 5 work points | `0.1337 pJ/bit`, R2 `0.990` |
-| Re-measured old fixed launch | `threads=256`, `blocks/SM=8` | 5 | `0.1099 +/- 0.0073 pJ/bit` |
-| Original short fixed run | `threads=256`, `blocks/SM=8` | last 10 of 12 | `0.1469 +/- 0.0109 pJ/bit` |
+| Quality-gate selected saturation point | `threads=384`, `blocks/SM=4` | 5 | `0.1144 +/- 0.0047 pJ/FLOP` |
+| Lowest mean diagnostic point | `threads=192`, `blocks/SM=8` | 5 | `0.1050 +/- 0.0013 pJ/FLOP` |
+| Selected target work-slope | `threads=384`, `blocks/SM=4` | 5 work points | `0.1406 pJ/FLOP`, R2 `0.986` |
+| Lowest mean work-slope | `threads=192`, `blocks/SM=8` | 5 work points | `0.1337 pJ/FLOP`, R2 `0.990` |
+| Re-measured old fixed launch | `threads=256`, `blocks/SM=8` | 5 | `0.1099 +/- 0.0073 pJ/FLOP` |
+| Original short fixed run | `threads=256`, `blocks/SM=8` | last 10 of 12 | `0.1469 +/- 0.0109 pJ/FLOP` |
 
-The `0.1144 +/- 0.0047 pJ/bit` value is preferred because it comes from the full planned launch-shape sweep and uses the quality-gate first-saturation selection rule. The lower `t192_b8` point is kept as a diagnostic lower-mean point, but it is not the selected representative target.
+The `0.1144 +/- 0.0047 pJ/FLOP` value is preferred because it comes from the full planned launch-shape sweep and uses the quality-gate first-saturation selection rule. The lower `t192_b8` point is kept as a diagnostic lower-mean point, but it is not the selected representative target.
 
-![A100 full 5s sweep](../../../fp16_energy_impl/results/a100/fp16_full_sweep_a100_20260603_044813/figures/a100_long5s_sweep_pjbit_elapsed.png)
+![A100 full 5s sweep pJ/FLOP](../../../fp16_energy_impl/results/a100/fp16_full_sweep_a100_20260603_044813/figures/a100_long5s_sweep_pjbit_elapsed.png)
 
 ## What Is Being Measured
 
-The quantity is not DRAM pJ/bit. It is a logical Tensor Core operand denominator:
+The quantity is not DRAM pJ/bit. The reported unit is `pJ/FLOP` for the logical Tensor Core work:
 
 ```text
-pJ/bit = (E_test - P_baseline * elapsed_test) / logical_FP16_input_bits
+pJ/FLOP = (E_test - P_baseline * elapsed_test) / logical_FP16_FLOPs
 ```
 
-For one logical `m16n16k16` MMA:
+Older generated fields and figures use names such as `matmul_input_pj_per_bit` because the first implementation used logical A/B input bits as the denominator. For this benchmark those two denominators are numerically identical for one logical `m16n16k16` MMA:
 
 ```text
 A bits + B bits = (16*16 + 16*16) * 16 = 8192 bit
 FLOPs          = 2 * 16 * 16 * 16       = 8192 FLOP
 ```
 
+Therefore the historical `pJ/input-bit` column has the same numeric value as `pJ/FLOP` here. The `pJ/FLOP` name is preferred because the benchmark is a Tensor Core compute workload, not a memory-bit energy experiment.
+
 The best name for the result is:
 
 ```text
-logical m16n16k16 FP16 input bit당 baseline-subtracted board/NVML energy estimate
+logical m16n16k16 FP16 FLOP당 baseline-subtracted board/NVML energy estimate
 ```
 
 ![FP16 experiment flow](../../../fp16_energy_impl/results/a100/fp16_matmul_pjbit_a100_20260603_031033/figures/fp16_pjbit_experiment_flow.png)
@@ -70,7 +72,7 @@ The original fixed run used `iters=1,000,000`, `threads=256`, `blocks/SM=8`, and
 | Test elapsed | about `1.47 s` | new `full5s` minimum `5.891 s` |
 | Baseline elapsed | about `0.43 s` | new `full5s` minimum `5.461 s` |
 | Minimum test power samples | `10` | at least tens of samples per row |
-| Same `t256_b8` pJ/bit | `0.1469 +/- 0.0109` | `0.1099 +/- 0.0073` |
+| Same `t256_b8` pJ/FLOP | `0.1469 +/- 0.0109` | `0.1099 +/- 0.0073` |
 
 The shorter fixed run is therefore retained as a historical diagnostic, but the full 5-second sweep is the preferred comparison basis.
 
@@ -106,7 +108,7 @@ The previous focused `3 x 4 = 12` A100 long-window run remains provenance for th
 
 ## Selected Sweep Results
 
-| Launch | Repeats | Test s | Baseline s | TFLOPS | Tensor model util | pJ/bit | Interpretation |
+| Launch | Repeats | Test s | Baseline s | TFLOPS | Tensor model util | pJ/FLOP | Interpretation |
 |---|---:|---:|---:|---:|---:|---:|---|
 | `t192_b8` | 5 | 6.118 | 5.822 | 296.19 | 94.97% | `0.1050 +/- 0.0013` | lowest mean diagnostic |
 | `t320_b8` | 5 | 5.891 | 5.461 | 307.57 | 98.62% | `0.1065 +/- 0.0052` | lower-mean repeated candidate |
@@ -115,7 +117,7 @@ The previous focused `3 x 4 = 12` A100 long-window run remains provenance for th
 | `t256_b8` | 5 | 5.897 | 5.706 | 307.26 | 98.52% | `0.1099 +/- 0.0073` | re-measured old launch |
 | `t384_b4` | 5 | 5.884 | 5.628 | 307.95 | 98.74% | `0.1144 +/- 0.0047` | quality-gate selected |
 
-The quality gate selects `t384_b4`, not the absolute lowest pJ/bit point, because the selection rule is the first Tensor Core model-utilization saturation point among valid candidates.
+The quality gate selects `t384_b4`, not the absolute lowest pJ/FLOP point, because the selection rule is the first Tensor Core model-utilization saturation point among valid candidates.
 
 ## Full Sweep Execution Table
 
@@ -124,7 +126,7 @@ This table lists every A100 full planned sweep launch shape that was run and ana
 - `A100_FP16_FULL_SWEEP_TABLE.csv`
 - `A100_FP16_FULL_SWEEP_TABLE.xlsx`
 
-| Launch | Threads/block | Blocks/SM | Threads/SM | Runs | Test s | Baseline s | TFLOPS | Tensor util % | pJ/bit | CI95 | Selected | Selection status |
+| Launch | Threads/block | Blocks/SM | Threads/SM | Runs | Test s | Baseline s | TFLOPS | Tensor util % | pJ/FLOP | CI95 | Selected | Selection status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | t32_b1 | 32 | 1 | 32 | 1 | 35.601 | 112.611 | 50.90 | 16.32 | 0.1836 | 0.0000 |  | valid_no_l2_not_selected |
 | t32_b2 | 32 | 2 | 64 | 1 | 17.802 | 56.310 | 101.79 | 32.64 | 0.1842 | 0.0000 |  | valid_no_l2_not_selected |
@@ -175,8 +177,8 @@ This table lists every A100 full planned sweep launch shape that was run and ana
 
 | Basis | Launch | Work points | Slope | R2 | Status |
 |---|---|---:|---:|---:|---|
-| Selected target | `t384_b4` | 5 | `0.1406 pJ/bit` | `0.986` | positive slope |
-| Lowest mean diagnostic | `t192_b8` | 5 | `0.1337 pJ/bit` | `0.990` | positive slope |
+| Selected target | `t384_b4` | 5 | `0.1406 pJ/FLOP` | `0.986` | positive slope |
+| Lowest mean diagnostic | `t192_b8` | 5 | `0.1337 pJ/FLOP` | `0.990` | positive slope |
 
 These work-slope sweeps varied `unroll = 1, 2, 4, 8, 16` at fixed `iters=2,000,000`, using the same `tensor_mma_f16acc` / `tensor_baseline_mov` pair. They are a consistency check that incremental energy increases with logical work; they do not replace the launch-shape sweep values above.
 
@@ -189,7 +191,7 @@ These work-slope sweeps varied `unroll = 1, 2, 4, 8, 16` at fixed `iters=2,000,0
 | full sweep timing | PASS, new `full5s` tests minimum `5.891 s` |
 | decision-boundary repeats | PASS, selected/lower-mean candidates at 5 runs |
 | current benchmark schema | PASS, `fp16-energy-bench-v2` |
-| denominator metadata | PASS, `8192` input bits/logical MMA |
+| denominator metadata | PASS, `8192` FLOP/logical MMA; legacy input-bit denominator is also `8192` |
 | intended timed global/L2 memory metadata | PASS, no intended memory |
 | NVML total energy counter | PASS |
 | clock stability | PASS, `1410 MHz`, span `0 MHz` |

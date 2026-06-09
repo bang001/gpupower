@@ -1,0 +1,46 @@
+Telemetry nvidia-smi id: 0
+
+=== matrix repeat 1/3 ===
+
+=== condition: order_reverse_operand_warp_rotating_4set_bounded_t384_b4_10m ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_warp_rotating_4set_bounded --iters 10000000 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024/raw/order_reverse_operand_warp_rotating_4set_bounded_t384_b4_10m_rep000_baseline_08ae091c/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc_warp_rotating_4set_bounded --iters 10000000 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024/raw/order_reverse_operand_warp_rotating_4set_bounded_t384_b4_10m_rep000_test_ba6f8e47/bench.json
+
+=== condition: order_reverse_operand_warp_static_4set_t384_b4_10m ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_warp_static_4set --iters 10000000 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024/raw/order_reverse_operand_warp_static_4set_t384_b4_10m_rep000_baseline_4ce127e6/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc_warp_static_4set --iters 10000000 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024/raw/order_reverse_operand_warp_static_4set_t384_b4_10m_rep000_test_23376553/bench.json
+
+=== condition: order_reverse_operand_fixed_ones_current_t384_b4_10m ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_fixed_ones --iters 10000000 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024/raw/order_reverse_operand_fixed_ones_current_t384_b4_10m_rep000_baseline_2e1d5d08/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc --iters 10000000 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024/raw/order_reverse_operand_fixed_ones_current_t384_b4_10m_rep000_test_4dba2237/bench.json
+
+=== matrix repeat 2/3 ===
+
+=== condition: order_reverse_operand_warp_rotating_4set_bounded_t384_b4_10m ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_warp_rotating_4set_bounded --iters 10000000 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024/raw/order_reverse_operand_warp_rotating_4set_bounded_t384_b4_10m_rep001_baseline_7df2b0a1/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc_warp_rotating_4set_bounded --iters 10000000 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024/raw/order_reverse_operand_warp_rotating_4set_bounded_t384_b4_10m_rep001_test_9fa7c236/bench.json
+
+=== condition: order_reverse_operand_warp_static_4set_t384_b4_10m ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_warp_static_4set --iters 10000000 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024/raw/order_reverse_operand_warp_static_4set_t384_b4_10m_rep001_baseline_6b7996a8/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc_warp_static_4set --iters 10000000 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024/raw/order_reverse_operand_warp_static_4set_t384_b4_10m_rep001_test_e0e59b36/bench.json
+
+=== condition: order_reverse_operand_fixed_ones_current_t384_b4_10m ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_fixed_ones --iters 10000000 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024/raw/order_reverse_operand_fixed_ones_current_t384_b4_10m_rep001_baseline_7b99f082/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc --iters 10000000 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024/raw/order_reverse_operand_fixed_ones_current_t384_b4_10m_rep001_test_32e6f98c/bench.json
+
+=== matrix repeat 3/3 ===
+
+=== condition: order_reverse_operand_warp_rotating_4set_bounded_t384_b4_10m ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_warp_rotating_4set_bounded --iters 10000000 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024/raw/order_reverse_operand_warp_rotating_4set_bounded_t384_b4_10m_rep002_baseline_ad15f28e/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc_warp_rotating_4set_bounded --iters 10000000 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024/raw/order_reverse_operand_warp_rotating_4set_bounded_t384_b4_10m_rep002_test_4ee342ef/bench.json
+
+=== condition: order_reverse_operand_warp_static_4set_t384_b4_10m ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_warp_static_4set --iters 10000000 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024/raw/order_reverse_operand_warp_static_4set_t384_b4_10m_rep002_baseline_105e526a/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc_warp_static_4set --iters 10000000 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024/raw/order_reverse_operand_warp_static_4set_t384_b4_10m_rep002_test_38437267/bench.json
+
+=== condition: order_reverse_operand_fixed_ones_current_t384_b4_10m ===
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_baseline_f16acc_fixed_ones --iters 10000000 --repeats 10 --device 0 --json-out results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024/raw/order_reverse_operand_fixed_ones_current_t384_b4_10m_rep002_baseline_0975cf40/bench.json
+RUN build_feasibility/fp16_energy_bench --blocks 0 --warmup 2 --unroll 8 --suppress-output-store --threads 384 --blocks-per-sm 4 --kernel tensor_mma_f16acc --iters 10000000 --repeats 1 --device 0 --json-out results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024/raw/order_reverse_operand_fixed_ones_current_t384_b4_10m_rep002_test_0fd87b04/bench.json
+
+Wrote run metadata: results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024/runs.jsonl
+Next: python3 scripts/analyze_results.py --input results/a100/fp16_operand_variation_a100_order_reverse_10m_r3_20260608_232024

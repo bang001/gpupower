@@ -13,10 +13,10 @@ A100/GA100 result artifacts live here.
 | Item | Value |
 |---|---|
 | Launch-shape coverage | 44/44 planned shapes |
-| Selected representative target | `threads=384`, `blocks/SM=4`, `0.1144 +/- 0.0047 pJ/bit` |
-| Lowest repeated mean | `threads=192`, `blocks/SM=8`, `0.1050 +/- 0.0013 pJ/bit` |
-| Selected work-slope check | `0.1406 pJ/bit`, `R2=0.9865` |
-| Lowest-mean work-slope check | `0.1337 pJ/bit`, `R2=0.9900` |
+| Selected representative target | `threads=384`, `blocks/SM=4`, `0.1144 +/- 0.0047 pJ/FLOP` |
+| Lowest repeated mean | `threads=192`, `blocks/SM=8`, `0.1050 +/- 0.0013 pJ/FLOP` |
+| Selected work-slope check | `0.1406 pJ/FLOP`, `R2=0.9865` |
+| Lowest-mean work-slope check | `0.1337 pJ/FLOP`, `R2=0.9900` |
 
 ## Tables
 

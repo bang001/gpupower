@@ -1328,8 +1328,8 @@ def plot_audit_metrics(rows: List[Dict[str, Any]], outdir: Path) -> None:
         rows,
         outdir,
         "matmul_input_pj_per_bit_mean",
-        "pJ/logical input bit",
-        "Strict FP16 selected pJ/bit",
+        "pJ/FLOP",
+        "Strict FP16 selected pJ/FLOP",
         "strict_result_matmul_input_pj_per_bit.png",
     )
     plot_metric(

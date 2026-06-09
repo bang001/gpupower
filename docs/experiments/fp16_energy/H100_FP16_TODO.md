@@ -7,10 +7,10 @@ Output root: `../../../fp16_energy_impl/results/h100/`
 This document tracks the planned H100 FP16 Tensor Core energy experiment. The goal is to produce a result that is directly comparable to the current A100 diagnostic value:
 
 ```text
-logical m16n16k16 FP16 input bit당 baseline-subtracted board/NVML energy estimate
+logical m16n16k16 FP16 FLOP당 baseline-subtracted board/NVML energy estimate
 ```
 
-The measurement is not DRAM pJ/bit and not pure Tensor Core silicon energy. It is a baseline-subtracted board/NVML estimate using the same logical input-bit denominator as the A100 and RTX3090 reports.
+The measurement is not DRAM pJ/bit and not pure Tensor Core silicon energy. It is a baseline-subtracted board/NVML estimate using the same logical `pJ/FLOP` denominator as the A100 and RTX3090 reports. Legacy generated fields may still mention input bits; for logical `m16n16k16`, the A/B input-bit denominator and FLOP denominator are both `8192` per logical MMA.
 
 ## Target Deliverables
 

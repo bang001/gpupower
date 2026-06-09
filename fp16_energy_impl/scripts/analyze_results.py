@@ -11,8 +11,12 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-import matplotlib.pyplot as plt
-from matplotlib.ticker import ScalarFormatter
+try:
+    import matplotlib.pyplot as plt
+    from matplotlib.ticker import ScalarFormatter
+except ModuleNotFoundError:
+    plt = None
+    ScalarFormatter = None
 
 from architecture_models import tensor_peak_metrics
 
@@ -24,6 +28,23 @@ REQUIRED_BENCHMARK_SCHEMA_FEATURES = {
     "strict_denominator_provenance",
     "timed_kernel_memory_provenance",
 }
+
+TENSOR_MMA_F16ACC_KERNELS = {
+    "tensor_mma_f16acc",
+    "tensor_mma_f16acc_warp_static_4set",
+    "tensor_mma_f16acc_warp_rotating_4set_bounded",
+}
+TENSOR_MMA_F32ACC_KERNELS = {"tensor_mma_f32acc"}
+TENSOR_MMA_KERNELS = TENSOR_MMA_F16ACC_KERNELS | TENSOR_MMA_F32ACC_KERNELS
+SUPPRESSIBLE_NO_MEMORY_KERNELS = {
+    "baseline_nop",
+    "tensor_baseline_mov",
+    "tensor_baseline_u32",
+    "tensor_baseline_f16acc_fixed_ones",
+    "tensor_baseline_f16acc_warp_static_4set",
+    "tensor_baseline_f16acc_warp_rotating_4set_bounded",
+    "tensor_baseline_f32",
+} | TENSOR_MMA_KERNELS
 
 
 def read_runs(path: Path) -> List[Dict[str, Any]]:
@@ -306,7 +327,7 @@ def classify_architecture(run: Dict[str, Any]) -> Dict[str, Any]:
         chip = "ga102" if "3090" in name else "ampere_sm86"
         product_class = "consumer" if "RTX" in name else "workstation_or_consumer"
         cuda_arch = "86"
-        note = "RTX/GA10x-class HMMA path; validate clock stability and no-L2 behavior before using pJ/bit"
+        note = "RTX/GA10x-class HMMA path; validate clock stability and no-L2 behavior before using pJ/FLOP"
     elif cc.startswith("8."):
         generation = "ampere"
         chip = "ampere_sm8x"
@@ -358,14 +379,7 @@ def infer_timed_kernel_memory(run: Dict[str, Any], mem_bytes: float = 0.0) -> Di
         suppress = parse_bool(run.get("suppress_output_store"))
         memory_kernel = kernel in {"memory_default", "memory_cg", "memory_cs"}
         half2_memory = kernel in {"fp16_half2", "baseline_regmove"}
-        suppressible = kernel in {
-            "baseline_nop",
-            "tensor_mma_f16acc",
-            "tensor_baseline_mov",
-            "tensor_baseline_u32",
-            "tensor_mma_f32acc",
-            "tensor_baseline_f32",
-        }
+        suppressible = kernel in SUPPRESSIBLE_NO_MEMORY_KERNELS
         input_loads = bool(memory_kernel or half2_memory or (kernel == "baseline_nop" and not suppress))
         output_stores = bool(memory_kernel or half2_memory or (suppressible and not suppress))
         has_global = bool(input_loads or output_stores or mem_bytes > 0.0)
@@ -398,7 +412,7 @@ def has_reliable_energy(run: Dict[str, Any]) -> bool:
 def matmul_bit_estimates(run: Dict[str, Any], ops: float) -> Dict[str, Any]:
     """Return logical Tensor Core matmul bit counts, not memory traffic bits."""
     kernel = str(run.get("kernel", ""))
-    if kernel not in {"tensor_mma_f16acc", "tensor_mma_f32acc"} or ops <= 0:
+    if kernel not in TENSOR_MMA_KERNELS or ops <= 0:
         return {
             "matmul_input_bits": 0.0,
             "matmul_accumulator_read_bits": 0.0,
@@ -443,7 +457,7 @@ def matmul_bit_estimates(run: Dict[str, Any], ops: float) -> Dict[str, Any]:
     mma_count = metadata_mma_count if math.isfinite(metadata_mma_count) and metadata_mma_count > 0.0 else mma_count_from_ops
     expected_input_bits_per_mma = (mma_m * mma_k + mma_k * mma_n) * 16.0
     input_bits_per_mma = finite_float(run.get("mma_input_bits_per_logical_mma"), expected_input_bits_per_mma)
-    acc_bits = 16 if kernel == "tensor_mma_f16acc" else 32
+    acc_bits = 16 if kernel in TENSOR_MMA_F16ACC_KERNELS else 32
     expected_accumulator_bits_per_mma = mma_m * mma_n * acc_bits
     accumulator_bits_per_mma = finite_float(
         run.get("mma_accumulator_bits_per_logical_mma"),
@@ -564,6 +578,25 @@ def group_pairs(rows: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]]:
                 "wgmma_supported": bool(s.get("wgmma_supported", False)),
                 "benchmark_uses_wgmma": bool(s.get("benchmark_uses_wgmma", False)),
                 "fp16_path": s.get("fp16_path", ""),
+                "test_operand_variation_mode": s.get("operand_variation_mode", ""),
+                "baseline_operand_variation_mode": "",
+                "test_operand_variation_set_count": s.get("operand_variation_set_count", ""),
+                "baseline_operand_variation_set_count": "",
+                "test_operand_variation_accumulator_rebase_period": s.get(
+                    "operand_variation_accumulator_rebase_period",
+                    "",
+                ),
+                "baseline_operand_variation_accumulator_rebase_period": "",
+                "test_operand_variation_accumulator_bounded": s.get(
+                    "operand_variation_accumulator_bounded",
+                    "",
+                ),
+                "baseline_operand_variation_accumulator_bounded": "",
+                "test_operand_variation_accumulator_bound_strategy": s.get(
+                    "operand_variation_accumulator_bound_strategy",
+                    "",
+                ),
+                "baseline_operand_variation_accumulator_bound_strategy": "",
                 "test_benchmark_schema_version": s.get("benchmark_schema_version", ""),
                 "baseline_benchmark_schema_version": "",
                 "test_benchmark_schema_features": s.get("benchmark_schema_features", ""),
@@ -744,7 +777,7 @@ def summarize_pair(cond: str, pair_index: int, t: Dict[str, Any], b: Dict[str, A
     valid_no_l2 = bool(valid_basic and not expected_l2_touch)
     pure_fp16_candidate = bool(
         valid_no_l2
-        and str(t.get("kernel", "")) in {"tensor_mma_f16acc", "tensor_mma_f32acc", "fp16_half2"}
+        and str(t.get("kernel", "")) in (TENSOR_MMA_KERNELS | {"fp16_half2"})
     )
     if pure_fp16_candidate:
         separation_quality = "pure_fp16_candidate_no_l2"
@@ -768,6 +801,31 @@ def summarize_pair(cond: str, pair_index: int, t: Dict[str, Any], b: Dict[str, A
         "wgmma_supported": bool(t.get("wgmma_supported", False)),
         "benchmark_uses_wgmma": bool(t.get("benchmark_uses_wgmma", False)),
         "fp16_path": t.get("fp16_path", ""),
+        "test_operand_variation_mode": t.get("operand_variation_mode", ""),
+        "baseline_operand_variation_mode": b.get("operand_variation_mode", ""),
+        "test_operand_variation_set_count": t.get("operand_variation_set_count", ""),
+        "baseline_operand_variation_set_count": b.get("operand_variation_set_count", ""),
+        "test_operand_variation_accumulator_rebase_period": t.get(
+            "operand_variation_accumulator_rebase_period",
+            "",
+        ),
+        "baseline_operand_variation_accumulator_rebase_period": b.get(
+            "operand_variation_accumulator_rebase_period",
+            "",
+        ),
+        "test_operand_variation_accumulator_bounded": t.get("operand_variation_accumulator_bounded", ""),
+        "baseline_operand_variation_accumulator_bounded": b.get(
+            "operand_variation_accumulator_bounded",
+            "",
+        ),
+        "test_operand_variation_accumulator_bound_strategy": t.get(
+            "operand_variation_accumulator_bound_strategy",
+            "",
+        ),
+        "baseline_operand_variation_accumulator_bound_strategy": b.get(
+            "operand_variation_accumulator_bound_strategy",
+            "",
+        ),
         "test_benchmark_schema_version": t.get("benchmark_schema_version", ""),
         "baseline_benchmark_schema_version": b.get("benchmark_schema_version", ""),
         "test_benchmark_schema_features": t.get("benchmark_schema_features", ""),
@@ -1022,6 +1080,37 @@ def aggregate_conditions(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                 "",
             ),
             "fp16_path": first.get("fp16_path", ""),
+            "test_operand_variation_mode": first.get("test_operand_variation_mode", ""),
+            "baseline_operand_variation_mode": first.get("baseline_operand_variation_mode", ""),
+            "test_operand_variation_set_count": first.get("test_operand_variation_set_count", ""),
+            "baseline_operand_variation_set_count": first.get(
+                "baseline_operand_variation_set_count",
+                "",
+            ),
+            "test_operand_variation_accumulator_rebase_period": first.get(
+                "test_operand_variation_accumulator_rebase_period",
+                "",
+            ),
+            "baseline_operand_variation_accumulator_rebase_period": first.get(
+                "baseline_operand_variation_accumulator_rebase_period",
+                "",
+            ),
+            "test_operand_variation_accumulator_bounded": first.get(
+                "test_operand_variation_accumulator_bounded",
+                "",
+            ),
+            "baseline_operand_variation_accumulator_bounded": first.get(
+                "baseline_operand_variation_accumulator_bounded",
+                "",
+            ),
+            "test_operand_variation_accumulator_bound_strategy": first.get(
+                "test_operand_variation_accumulator_bound_strategy",
+                "",
+            ),
+            "baseline_operand_variation_accumulator_bound_strategy": first.get(
+                "baseline_operand_variation_accumulator_bound_strategy",
+                "",
+            ),
             "test_benchmark_schema_version": first.get("test_benchmark_schema_version", ""),
             "baseline_benchmark_schema_version": first.get("baseline_benchmark_schema_version", ""),
             "test_benchmark_schema_features": first.get("test_benchmark_schema_features", ""),
@@ -1198,6 +1287,37 @@ def aggregate_thread_sweep(
                 "",
             ),
             "fp16_path": fp16_path,
+            "test_operand_variation_mode": group[0].get("test_operand_variation_mode", ""),
+            "baseline_operand_variation_mode": group[0].get("baseline_operand_variation_mode", ""),
+            "test_operand_variation_set_count": group[0].get("test_operand_variation_set_count", ""),
+            "baseline_operand_variation_set_count": group[0].get(
+                "baseline_operand_variation_set_count",
+                "",
+            ),
+            "test_operand_variation_accumulator_rebase_period": group[0].get(
+                "test_operand_variation_accumulator_rebase_period",
+                "",
+            ),
+            "baseline_operand_variation_accumulator_rebase_period": group[0].get(
+                "baseline_operand_variation_accumulator_rebase_period",
+                "",
+            ),
+            "test_operand_variation_accumulator_bounded": group[0].get(
+                "test_operand_variation_accumulator_bounded",
+                "",
+            ),
+            "baseline_operand_variation_accumulator_bounded": group[0].get(
+                "baseline_operand_variation_accumulator_bounded",
+                "",
+            ),
+            "test_operand_variation_accumulator_bound_strategy": group[0].get(
+                "test_operand_variation_accumulator_bound_strategy",
+                "",
+            ),
+            "baseline_operand_variation_accumulator_bound_strategy": group[0].get(
+                "baseline_operand_variation_accumulator_bound_strategy",
+                "",
+            ),
             "test_benchmark_schema_versions": "; ".join(
                 sorted({str(r.get("test_benchmark_schema_version", "")) for r in group if str(r.get("test_benchmark_schema_version", ""))})
             ),
@@ -1414,7 +1534,7 @@ def aggregate_thread_sweep(
             )
             row["selection_pjbit_rank_note"] = (
                 "rank among thread points meeting required_valid_no_l2_count and utilization sanity; "
-                "lower pJ/bit points can still be rejected by saturation or strict quality gates"
+                "lower pJ/FLOP points can still be rejected by saturation or strict quality gates"
             )
 
         if not valid_no_l2_candidates:
@@ -1495,7 +1615,7 @@ def aggregate_thread_sweep(
 def aggregate_work_slope(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     by_variant: Dict[Tuple[str, str, str, str, str, str], List[Dict[str, Any]]] = defaultdict(list)
     for row in rows:
-        if str(row.get("test_kernel", "")) not in {"tensor_mma_f16acc", "tensor_mma_f32acc"}:
+        if str(row.get("test_kernel", "")) not in TENSOR_MMA_KERNELS:
             continue
         key = (
             str(row.get("gpu", "")),
@@ -1750,7 +1870,7 @@ def plot_matmul_pj_per_bit_bar(summary_rows: List[Dict[str, Any]], figdir: Path)
     yerr = [float(r["std"]) for r in rows]
     plt.bar(labels, vals, yerr=yerr, capsize=4)
     plt.xticks(rotation=30, ha="right")
-    plt.ylabel("pJ/logical input bit")
+    plt.ylabel("pJ/FLOP")
     plt.title("FP16 Tensor Core matmul energy estimate")
     plt.tight_layout()
     plt.savefig(figdir / "matmul_input_pj_per_bit_bar.png", dpi=160)
@@ -1851,7 +1971,7 @@ def plot_thread_sweep(thread_rows: List[Dict[str, Any]], figdir: Path) -> None:
             if include_pjbit:
                 pj = finite_float(row.get("matmul_input_pj_per_bit_mean"))
                 if math.isfinite(pj):
-                    label += f"\n{pj:.3g} pJ/b"
+                    label += f"\n{pj:.3g} pJ/FLOP"
             return label
 
         fig, ax1 = plt.subplots(figsize=(8, 4.8))
@@ -1897,11 +2017,11 @@ def plot_thread_sweep(thread_rows: List[Dict[str, Any]], figdir: Path) -> None:
             title_note = " (no dmon telemetry; TFLOPS/peak fallback)"
         plot_title = "Launch-shape sweep: utilization vs threads/SM"
         if title_note:
-            plot_title += "\nlabels show t/b and pJ/b; no dmon telemetry -> TFLOPS/peak fallback"
+            plot_title += "\nlabels show t/b and pJ/FLOP; no dmon telemetry -> TFLOPS/peak fallback"
         elif uses_tensor_target:
-            plot_title += "\nlabels show t/b and pJ/b; target uses Tensor model utilization"
+            plot_title += "\nlabels show t/b and pJ/FLOP; target uses Tensor model utilization"
         else:
-            plot_title += "\nlabels show t/b and pJ/b"
+            plot_title += "\nlabels show t/b and pJ/FLOP"
         ax1.set_title(plot_title, fontsize=11)
         fig.set_size_inches(12.5, 5.8)
         plt.tight_layout()
@@ -1917,10 +2037,10 @@ def plot_thread_sweep(thread_rows: List[Dict[str, Any]], figdir: Path) -> None:
                 pjbit_ci.append(ci if math.isfinite(ci) and ci >= 0.0 else 0.0)
 
             fig, ax = plt.subplots(figsize=(12.5, 5.8))
-            ax.errorbar(plot_xs, pjbit, yerr=pjbit_ci, fmt="D", capsize=3, color="tab:purple", label="pJ/bit")
+            ax.errorbar(plot_xs, pjbit, yerr=pjbit_ci, fmt="D", capsize=3, color="tab:purple", label="pJ/FLOP")
             ax.axhline(0.0, color="0.3", linewidth=0.8, alpha=0.6)
             ax.set_xlabel("Launched threads per SM")
-            ax.set_ylabel("pJ/logical input bit")
+            ax.set_ylabel("pJ/FLOP")
             ax.set_xticks(sorted({x for x in xs if math.isfinite(x)}))
             ax.get_xaxis().set_major_formatter(ScalarFormatter())
             ax.grid(True, axis="y", alpha=0.3)
@@ -1964,11 +2084,11 @@ def plot_thread_sweep(thread_rows: List[Dict[str, Any]], figdir: Path) -> None:
                     edgecolor="black",
                     linewidth=0.6,
                     zorder=4,
-                    label="lowest sane valid no-L2 pJ/b",
+                    label="lowest sane valid no-L2 pJ/FLOP",
                 )
                 if not selected or low_row is not selected[0]:
                     ax.annotate(
-                        f"lowest sane valid no-L2\n{shape_label(low_row)}\n{low_y:.3g} pJ/b",
+                        f"lowest sane valid no-L2\n{shape_label(low_row)}\n{low_y:.3g} pJ/FLOP",
                         (low_x, low_y),
                         textcoords="offset points",
                         xytext=(8, -30 if low_y >= 0 else 12),
@@ -1978,7 +2098,7 @@ def plot_thread_sweep(thread_rows: List[Dict[str, Any]], figdir: Path) -> None:
                         bbox={"boxstyle": "round,pad=0.2", "fc": "white", "ec": "none", "alpha": 0.78},
                     )
             ax.legend(loc="best")
-            plt.title(f"Thread sweep pJ/bit: {test_kernel} vs {baseline_kernel}")
+            plt.title(f"Thread sweep pJ/FLOP: {test_kernel} vs {baseline_kernel}")
             plt.tight_layout()
             safe_name = f"thread_sweep_pjbit_{test_kernel}_vs_{baseline_kernel}.png".replace("/", "_")
             plt.savefig(figdir / safe_name, dpi=160)
@@ -2048,7 +2168,7 @@ def plot_work_slope(work_slope_rows: List[Dict[str, Any]], summary_rows: List[Di
         ax.scatter(x_plot, ys, label="mean measured points")
         if math.isfinite(slope) and math.isfinite(intercept):
             y_fit = [slope * x + intercept for x in xs]
-            label = f"fit: {finite_float(slope_row.get('slope_matmul_input_pj_per_bit')):.4g} pJ/bit"
+            label = f"fit: {finite_float(slope_row.get('slope_matmul_input_pj_per_bit')):.4g} pJ/FLOP"
             ax.plot(x_plot, y_fit, color="tab:orange", label=label)
         ax.axhline(0.0, color="0.3", linewidth=0.8, alpha=0.6)
         ax.set_xlabel("Logical matmul input bits (1e12 bits)")
@@ -2136,17 +2256,20 @@ def main() -> int:
         write_csv(args.input / "work_slope_summary.csv", work_slope_summary)
 
     figdir = args.input / "figures"
-    figdir.mkdir(exist_ok=True)
-    plot_bar(summary, figdir)
-    plot_pj_per_bit_bar(summary, figdir)
-    plot_matmul_pj_per_bit_bar(summary, figdir)
-    plot_energy_separation(summary, figdir)
-    plot_thread_sweep(thread_sweep_summary, figdir)
-    plot_scatter(summary, figdir)
-    plot_work_slope(work_slope_summary, summary, figdir)
-    for s in summary:
-        plot_power_trace(s, figdir)
-    plot_clock_temp(enriched, figdir)
+    if plt is None:
+        print("matplotlib is unavailable; wrote CSV summaries and skipped figures")
+    else:
+        figdir.mkdir(exist_ok=True)
+        plot_bar(summary, figdir)
+        plot_pj_per_bit_bar(summary, figdir)
+        plot_matmul_pj_per_bit_bar(summary, figdir)
+        plot_energy_separation(summary, figdir)
+        plot_thread_sweep(thread_sweep_summary, figdir)
+        plot_scatter(summary, figdir)
+        plot_work_slope(work_slope_summary, summary, figdir)
+        for s in summary:
+            plot_power_trace(s, figdir)
+        plot_clock_temp(enriched, figdir)
 
     print(f"Wrote: {args.input / 'summary.csv'}")
     print(f"Wrote: {args.input / 'condition_summary.csv'}")
@@ -2154,7 +2277,8 @@ def main() -> int:
         print(f"Wrote: {args.input / 'thread_sweep_summary.csv'}")
     if work_slope_summary:
         print(f"Wrote: {args.input / 'work_slope_summary.csv'}")
-    print(f"Wrote figures under: {figdir}")
+    if plt is not None:
+        print(f"Wrote figures under: {figdir}")
     return 0
 
 

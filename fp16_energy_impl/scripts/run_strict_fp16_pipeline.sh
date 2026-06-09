@@ -44,7 +44,7 @@ usage() {
   cat <<'USAGE'
 Usage: run_strict_fp16_pipeline.sh [options]
 
-Runs the strict FP16 Tensor Core pJ/bit pipeline:
+Runs the strict FP16 Tensor Core pJ/FLOP pipeline:
   build -> env capture -> runtime preflight -> matrix repeat calibration
   -> NCU permission probe -> structural-baseline thread sweep -> analyze
   -> Nsight Compute no-L2 validation -> quality gate --require-ncu

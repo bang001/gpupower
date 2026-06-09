@@ -172,7 +172,7 @@ def main() -> int:
             "logical_input_bits_per_mma": 8192,
             "work_slope_required": effective_work_slope_required,
             "note": (
-                "Final FP16 pJ/bit claims require benchmark timed-loop "
+                "Final FP16 pJ/FLOP claims require benchmark timed-loop "
                 "nvmlDeviceGetTotalEnergyConsumption() deltas; nvidia-smi power traces are "
                 "diagnostic unless explicitly downgraded to fallback-grade results. When "
                 "work_slope_required=true, each selected target must also have matching "
